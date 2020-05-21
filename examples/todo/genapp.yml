@@ -1,0 +1,10 @@
+database:
+  database: todo
+  username: todo
+  password: todo
+
+api:
+  output: api
+
+frontend:
+  output: browser

@@ -1,35 +1,26 @@
 ﻿open System
 
+open FSharp.Configuration
 open Npgsql
 
-type Column =
+open Database
+
+// See: https://stackoverflow.com/a/30903481/1507139
+type Config =
     {
-        Name: string
-        Type: string
+        
     }
 
-type Table =
-    {
-        Name: string
-        Columns: Column []
-    }
+let getConfig () : Config =
 
 [<EntryPoint>]
 let main args =
-    let dsn = sprintf "Host=%s;Database=%s;Username=%s;Password=%s;" (args.[0]) (args.[1]) (args.[2]) (args.[3])
-    let conn = new NpgsqlConnection(dsn)
-    conn.Open()
-    let cmd = new NpgsqlCommand("SELECT table_name FROM information_schema.tables WHERE table_schema='public'", conn)
-    let dr = cmd.ExecuteReader()
-    let tables = [| while dr.Read() do yield dr.GetString 0 |]
-    dr.Close()
+    let config = getConfig()
 
-    for name in tables do
-        let cmd = new NpgsqlCommand(sprintf "SELECT column_name, data_type FROM information_schema.columns WHERE table_schema='public' AND table_name='%s'" name, conn)
-        let dr = cmd.ExecuteReader()
-        let columns = [| while dr.Read() do yield { Name = dr.GetString 0; Type = dr.GetString 1 } |]
-        let table: Table = { Name = name; Columns = columns; }
-        printfn "%A" table
-        dr.Close()
-
+    let db = new DatabaseReader(
+        config.Database.Host,
+        config.Database.Database,
+        config.Database.Username,
+        config.Database.Password)
+    let tables = db.getTables()
     0

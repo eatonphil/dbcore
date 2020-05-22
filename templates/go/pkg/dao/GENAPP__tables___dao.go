@@ -1,15 +1,16 @@
-package model
+package dao
 
-type {{name}} struct {
+
+type {{table}} struct {
 	{{ for column in columns }}
 	{{ name }} {{ datatype }}
 	{{ end }}
 }
 
-func (mm ModelManager) {{name}}GetAll(where sq.Sqlizer, page Pagination) ([]{{name}}, uint, uint, uint, error) {
+func (d DAO) {{name}}GetAll(where sq.Sqlizer, page Pagination) ([]{{name}}, uint, uint, uint, error) {
 	filter, args := where.ToSql()
 	query := format.Sprintf(`SELECT COUNT() OVER () AS total, {{  }} FROM {{ name }} WHERE %s`, filter)
-	rows, err := mm.QueryRows(query, ...args)
+	rows, err := d.db.QueryRows(query, ...args)
 	if err != nil {
 		return nil, 0, 0, 0, err
 	}

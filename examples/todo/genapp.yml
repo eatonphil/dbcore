@@ -4,7 +4,6 @@ database:
   password: todo
 
 api:
-  output: api
-
-frontend:
-  output: browser
+  language: go
+  repo: github.com/eatonphil/genapp-todo
+  project: genapp_todo

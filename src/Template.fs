@@ -31,14 +31,15 @@ type Engine =
             let fsAndCtxs =
                 if not (f.Contains tableSubstitute) then [(f, {| ctx with Table = ctx.Tables.[0] |})]
                 else [ for t in ctx.Tables do
-                           yield (Path.Combine(Path.GetDirectoryName(f),
-                                              "genapp_" + Path.GetFileName(f).Replace(tableSubstitute, t.Name)),
+                           yield (Path.GetFileName(f).Replace(tableSubstitute, t.Name),
                                   {| ctx with Table = t |}) ]
             for (f, ctx) in fsAndCtxs do
                 let outFile = Path.Combine(this.OutDir, f)
                 printfn "[DEBUG] Generating: %s" outFile
+
                 // Create directory if not exists
                 (new FileInfo(outFile)).Directory.Create()
+
                 File.WriteAllText(outFile, tpl.Render(ctx))
 
 

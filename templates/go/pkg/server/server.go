@@ -22,12 +22,15 @@ type Server struct {
 }
 
 func (s Server) registerControllers() {
-	{{ for table in tables }}
+	{{~ for table in tables ~}}
+	// Register {{table.name}} routes
 	s.router.GET("/{{table.name}}", s.{{table.name}}GetManyController)
 	s.router.POST("/{{table.name}}/new", s.{{table.name}}CreateController)
-	s.router.GET("/{{table.name}}/:id", s.{{table.name}}GetController)
-	s.router.PUT("/{{table.name}}/:id", s.{{table.name}}UpdateController)
-	s.router.DELETE("/{{table.name}}/:id", s.{{table.name}}DeleteController)
+	{{~ if table.primary_key ~}}
+	s.router.GET("/{{table.name}}/:key", s.{{table.name}}GetController)
+	s.router.PUT("/{{table.name}}/:key", s.{{table.name}}UpdateController)
+	s.router.DELETE("/{{table.name}}/:key", s.{{table.name}}DeleteController)
+	{{~ end ~}}
 	{{ end }}
 }
 

@@ -16,7 +16,7 @@ type DatabaseConfig() =
 
 type ApiConfig() =
     let mutable outdir = ""
-    member this.Outdir
+    member this.OutDir
         with get() = if outdir = "" then this.Language else ""
         and set(value) = outdir <- value
 

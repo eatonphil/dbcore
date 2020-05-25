@@ -7,6 +7,7 @@ type Column =
     {
         Name: string
         Type: string
+        GoType: string
     }
 
 
@@ -50,7 +51,7 @@ type DatabaseReader =
             "SELECT
                  kcu.column_name,
                  ccu.table_name,
-                 ccu.column_name,
+                 ccu.column_name
              FROM
                  information_schema.table_constraints AS tc
                  JOIN information_schema.key_column_usage AS kcu
@@ -61,8 +62,8 @@ type DatabaseReader =
                    AND ccu.table_schema = tc.table_schema
              WHERE tc.constraint_type = '@type' AND tc.table_name = '@name'"
         use cmd = new NpgsqlCommand(query, conn)
-        cmd.Parameters.AddWithValue("name", table)
-        cmd.Parameters.AddWithValue("type", typ)
+        cmd.Parameters.AddWithValue("name", table) |> ignore
+        cmd.Parameters.AddWithValue("type", typ) |> ignore
         use dr = cmd.ExecuteReader()
         [|
             while dr.Read() do
@@ -73,20 +74,33 @@ type DatabaseReader =
                 }
         |]
 
+    member private this.SqlToGoType(typ: string, nullable: bool) : string =
+        match typ with
+        | "int" -> if nullable then "*int32" else "int32"
+        | "bigint" -> if nullable then "null.Int" else "int64"
+        | "text" | "varchar" | "char" -> if nullable then "null.String" else "string"
+        | "bool" -> if nullable then "null.Bool" else "bool"
+        | "timestamp" -> if nullable then "null.Time" else "time.Time"
+        | _ -> failwith ("Unsupported PostgreSQL type" + typ)
+
     member private this.GetTable(conn: NpgsqlConnection, name: string) : Table =
         let columns =
             let query =
                 "SELECT
-                     column_name, data_type
+                     column_name, data_type, is_nullable
                  FROM
                      information_schema.columns
                  WHERE
                      table_schema='public' AND table_name='@name'"
             use cmd = new NpgsqlCommand(query, conn)
-            cmd.Parameters.AddWithValue("name", name)
+            cmd.Parameters.AddWithValue("name", name) |> ignore
             use dr = cmd.ExecuteReader()
             [| while dr.Read() do
-                   yield { Name = dr.GetString 0; Type = dr.GetString 1 } |]
+                   yield {
+                       Name = dr.GetString 0
+                       Type = dr.GetString 1
+                       GoType = this.SqlToGoType (dr.GetString 1, dr.GetBoolean 2)
+                   } |]
 
         let foreignKeys = this.GetConstraints(conn, name, "FOREIGN KEY")
 
@@ -105,17 +119,21 @@ type DatabaseReader =
 
     member this.GetTables () : Table[] =
         use conn = this.GetConn()
-        let query =
-            "SELECT
-                 table_name
+
+        // Fetch names first so cmd can be closed
+        let tableNames =
+            let query =
+                "SELECT
+                table_name
              FROM
                  information_schema.tables
              WHERE
                  table_schema='public'"
-        use cmd = new NpgsqlCommand(query, conn)
-        use dr = cmd.ExecuteReader()
+            use cmd = new NpgsqlCommand(query, conn)
+            use dr = cmd.ExecuteReader()
+            [| while dr.Read() do yield dr.GetString 0 |]
 
-        [| while dr.Read() do yield this.GetTable(conn, dr.GetString 0) |]
+        [| for name in tableNames do yield this.GetTable(conn, name) |]
 
 
 let MakeDatabaseReader (cfg: Config.DatabaseConfig) : DatabaseReader =

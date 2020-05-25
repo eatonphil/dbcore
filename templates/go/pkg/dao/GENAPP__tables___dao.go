@@ -1,17 +1,20 @@
 package dao
 
 import (
+	"time"
+
+	"github.com/guregu/null"
 	"github.com/jmoiron/sqlx"
 	"github.com/Masterminds/squirrel"
 )
 
 type {{ table.name|string.capitalize }} struct {
 	{{~ for column in table.columns ~}}
-	C_{{ column.name }} {{ column.go_type }} `db:"{{ column.name }"`
+	C_{{ column.name }} {{ column.go_type }} `db:"{{ column.name }}"`
 	{{~ end ~}}
 }
 
-type {{ table.name|string.capitalze }}PaginatedResponse struct {
+type {{ table.name|string.capitalize }}PaginatedResponse struct {
 	Total
 	Data {{ table.name|string.capitalize }}[]
 }
@@ -57,21 +60,15 @@ LIMIT
 	return &response, err
 }
 
-func (d DAO) {{ table.name|string.capitalize }}InsertMany(body {{ table.name|string.capitalize }}) err {
-	_, err := d.db.Exec(`
-INSERT INTO
-  {{ table.name }} ({{ for column in columns if column.auto_increment continue }}"{{ column.name }}"{{ if for.index < columns.length }},{{ end }}{{ end }})
-VALUES
-  {{~ for column in columns ~}}
-  {{~ end ~}}
-`, {{ for column in columns }}body.C_{{ column.name }}{{ end }})
-	return err
-}
-
 func (d DAO) {{ table.name|string.capitalize }}Insert(body {{ table.name|string.capitalize }}) err {
 	_, err := d.db.Exec(`
 INSERT INTO
-  {{ table.name }} ({{ for column in columns if column.auto_increment continue }}"{{ column.name }}"{{ if for.index < columns.length }},{{ end }}{{ end }})
+  {{ table.name }} (
+    {{~ for column in columns
+            if column.auto_increment continue end
+        end ~}}
+      "{{ column.name }}"{{ if for.index < columns.length - 1 }},{{ end }}
+    {{~ end ~}})
 VALUES
   {{~ for column in columns ~}}
   {{~ end ~}}
@@ -83,14 +80,19 @@ VALUES
 func (d DAO) {{ table.name|string.capitalize }}Update(key {{ table.primaryKey.go_type }}, body {{ table.name|string.capitalize }}) err {
 	_, err := d.db.Exec(`
 UPDATE
-  {{ table.name }}
+  "{{ table.name }}"
 SET
   {{~ for column in columns ~}}
   "{{column.name}}" = ${{ for.index + 1 }}{{ if for.index < columns.length }},{{ end }}
   {{~ end ~}}
 WHERE
   {{ table.primaryKey.name }} = $1
-`, id, {{ for column in columns }}body.C_{{ column.name }}{{ end }})
+`, id, {{ for column in columns }}body.C_{{ column.name }}{{ if for.index < columns.length - 1 }},{{ end }}{{ end }})
+	return err
+}
+
+func (d DAO) {{ table.name|string.capitalize }}Delete(key {{ table.primaryKey.go_type }}) error {
+	_, err := d.db.Exec(`DELETE FROM "{{ table.name }}" WHERE "{{ table.primaryKey.column }}" = $1`, key)
 	return err
 }
 {{ end }}

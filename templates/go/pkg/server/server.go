@@ -9,8 +9,9 @@ import (
 	"github.com/julienschmidt/httprouter"
 	"github.com/lib/pq"
 	"github.com/sirupsen/logrus"
+	"github.com/spf13/viper"
 
-	"{{repo}}/pkg/dao"
+	"{{api.repo}}/pkg/dao"
 )
 
 type Server struct {
@@ -22,11 +23,11 @@ type Server struct {
 
 func (s Server) registerControllers() {
 	{{ for table in tables }}
-	s.router.GET("/{{table}}", s.{{table}}GetManyController)
-	s.router.POST("/{{table}}/new", s.{{table}}CreateController)
-	s.router.GET("/{{table}}/:id", s.{{table}}GetOneController)
-	s.router.PUT("/{{table}}/:id", s.{{table}}UpdateOneController)
-	s.router.DELETE("/{{table}}/:id", s.{{table}}DeleteOneController)
+	s.router.GET("/{{table.name}}", s.{{table.name}}GetManyController)
+	s.router.POST("/{{table.name}}/new", s.{{table.name}}CreateController)
+	s.router.GET("/{{table.name}}/:id", s.{{table.name}}GetController)
+	s.router.PUT("/{{table.name}}/:id", s.{{table.name}}UpdateController)
+	s.router.DELETE("/{{table.name}}/:id", s.{{table.name}}DeleteController)
 	{{ end }}
 }
 

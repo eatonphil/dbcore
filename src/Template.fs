@@ -31,7 +31,7 @@ type Engine =
             let fsAndCtxs =
                 if not (f.Contains tableSubstitute) then [(f, {| ctx with Table = ctx.Tables.[0] |})]
                 else [ for t in ctx.Tables do
-                           yield (Path.GetFileName(f).Replace(tableSubstitute, t.Name),
+                           yield (f.Replace(tableSubstitute, t.Name),
                                   {| ctx with Table = t |}) ]
             for (f, ctx) in fsAndCtxs do
                 let outFile = Path.Combine(this.OutDir, f)

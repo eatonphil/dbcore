@@ -3,13 +3,13 @@ package server
 import (
 	"context"
 	"net/http"
+	"os"
 	"os/signal"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/julienschmidt/httprouter"
-	"github.com/lib/pq"
+	_ "github.com/lib/pq"
 	"github.com/sirupsen/logrus"
-	"github.com/spf13/viper"
 
 	"{{api.repo}}/pkg/dao"
 )
@@ -17,7 +17,7 @@ import (
 type Server struct {
 	dao *dao.DAO
 	router *httprouter.Router
-	logger *logrus.Logger
+	logger *logrus.FieldLogger
 	address string
 }
 
@@ -44,7 +44,7 @@ func (s Server) registerSigintHandler(srv *http.Server) {
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-	if err := server.Shutdown(ctx); err != nil {
+	if err := srv.Shutdown(ctx); err != nil {
 		s.logger.Warnf("Error during shutdown: %s", err)
 		return
 	}

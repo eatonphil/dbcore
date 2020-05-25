@@ -8,6 +8,7 @@ type Column =
         Name: string
         Type: string
         GoType: string
+        AutoIncrement: bool
     }
 
 
@@ -60,10 +61,11 @@ type DatabaseReader =
                  JOIN information_schema.constraint_column_usage AS ccu
                    ON ccu.constraint_name = tc.constraint_name
                    AND ccu.table_schema = tc.table_schema
-             WHERE tc.constraint_type = '@type' AND tc.table_name = '@name'"
+             WHERE tc.constraint_type=@type AND tc.table_name=@name"
         use cmd = new NpgsqlCommand(query, conn)
         cmd.Parameters.AddWithValue("name", table) |> ignore
         cmd.Parameters.AddWithValue("type", typ) |> ignore
+        cmd.Prepare()
         use dr = cmd.ExecuteReader()
         [|
             while dr.Read() do
@@ -87,20 +89,31 @@ type DatabaseReader =
         let columns =
             let query =
                 "SELECT
-                     column_name, data_type, is_nullable
+                     column_name,
+                     data_type,
+                     is_nullable <> 'NO',
+                     COALESCE(column_default, '') LIKE '%seq%' -- Not the greatest way to detect auto incrementing, but ok for now
                  FROM
                      information_schema.columns
                  WHERE
-                     table_schema='public' AND table_name='@name'"
+                     table_schema='public' AND table_name=@name"
             use cmd = new NpgsqlCommand(query, conn)
             cmd.Parameters.AddWithValue("name", name) |> ignore
+            cmd.Prepare()
             use dr = cmd.ExecuteReader()
-            [| while dr.Read() do
-                   yield {
-                       Name = dr.GetString 0
-                       Type = dr.GetString 1
-                       GoType = this.SqlToGoType (dr.GetString 1, dr.GetBoolean 2)
-                   } |]
+            [|
+                while dr.Read() do
+                    yield {
+                        Name = dr.GetString 0
+                        Type = dr.GetString 1
+                        GoType = this.SqlToGoType (dr.GetString 1, dr.GetBoolean 2)
+                        AutoIncrement = dr.GetBoolean 3
+                    }
+            |]
+
+        if columns.Length = 0
+            then failwith ("Expected more than 0 columns in table " + name)
+            else "" |> ignore
 
         let foreignKeys = this.GetConstraints(conn, name, "FOREIGN KEY")
 

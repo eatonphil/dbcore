@@ -3,8 +3,11 @@ package server
 import (
 	"encoding/json"
 	"net/http"
+	"strconv"
 
-	"{{api.repo}}/pkg/dao"
+	"github.com/Masterminds/squirrel"
+
+	"{{ api.repo }}/pkg/dao"
 )
 
 func sendValidationErrorResponse(w http.ResponseWriter, msg string) {
@@ -23,7 +26,7 @@ func sendErrorResponse(w http.ResponseWriter, err error) {
 	json.NewEncoder(w).Encode(struct{
 		Error string `json:"error"`
 	}{
-		err,
+		err.Error(),
 	})
 }
 
@@ -35,4 +38,38 @@ func sendResponse(w http.ResponseWriter, obj interface{}) {
 func getBody(r *http.Request, obj interface{}) error {
 	decoder := json.NewDecoder(r.Body)
 	return decoder.Decode(obj)
+}
+
+func getFilterAndPageInfo(r *http.Request) (squirrel.Sqlizer, *dao.Pagination, error) {
+	getSingleUintParameter := func(param string) (uint64, error) {
+		values, ok := r.URL.Query()[param]
+		if !ok || len(values) == 0 {
+			return 0, fmt.Errorf(`Expected "%s" parameter`, param)
+		}
+
+		return strconv.ParseUint(values[0], 10, 64)
+	}
+
+	limit, err := getSingleUintParameter("limit")
+	if err != nil {
+		return nil, nil, err
+	}
+
+	offset, err := getSingleUintParameter("offset")
+	if err != nil {
+		return nil, nil, err
+	}
+
+	page, err := getSingleUintParameter("page")
+	if err != nil {
+		return nil, nil, err
+	}
+
+	// TODO: support actual squirrel filters
+	return nil, &dao.Pagination{
+		Limit: limit,
+		Offset: offset,
+		Page: page,
+		Order: r.URL.Query().Get("order"),
+	}, nil
 }

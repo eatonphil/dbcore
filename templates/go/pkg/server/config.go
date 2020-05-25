@@ -6,11 +6,13 @@ import (
 	"github.com/spf13/viper"
 )
 
-type Config viper.Config
+type Config struct {
+	*viper.Viper
+}
 
 func (c Config) GetString(arg string, defaults ...string) string {
-	v := c.(viper.Config).GetString(arg)
-	if v {
+	v := c.Viper.GetString(arg)
+	if v != "" {
 		return v
 	}
 
@@ -18,11 +20,11 @@ func (c Config) GetString(arg string, defaults ...string) string {
 		return defaults[0]
 	}
 
-	fmt.Panicf("Missing required configuration: %s", arg)
+	panic(fmt.Sprintf("Missing required configuration: %s", arg))
 }
 
 func NewConfig(file string) *Config {
 	v := viper.New()
 	v.SetConfigFile(file)
-	return v
+	return &Config{v}
 }

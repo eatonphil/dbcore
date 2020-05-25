@@ -10,20 +10,24 @@ import (
 
 type {{ table.name|string.capitalize }} struct {
 	{{~ for column in table.columns ~}}
-	C_{{ column.name }} {{ column.go_type }} `db:"{{ column.name }}"`
+	C_{{ column.name }} {{ column.go_type }} `db:"{{ column.name }}" json:"{{ column.name }}"`
 	{{~ end ~}}
 }
 
 type {{ table.name|string.capitalize }}PaginatedResponse struct {
-	Total
-	Data {{ table.name|string.capitalize }}[]
+	Total uint64
+	Data []{{ table.name|string.capitalize }}
 }
 
-func (d DAO) {{table.name|string.capitalize}}GetMany(where sq.Sqlizer, p Pagination) (*{{table.name|string.capitalize}}|PaginatedResponse, error) {
-	filter, args := where.ToSql()
-	query := format.Sprintf(`
+func (d DAO) {{ table.name|string.capitalize }}GetMany(where squirrel.Sqlizer, p Pagination) (*{{ table.name|string.capitalize }}PaginatedResponse, error) {
+	filter, args, err := where.ToSql()
+	if err != nil {
+		return nil, err
+	}
+
+	query := fmt.Sprintf(`
 SELECT
-  {{~ for column in columns ~}}
+  {{~ for column in table.columns ~}}
   "{{ column.name }}",
   {{~ end ~}}
   COUNT() OVER () AS __total
@@ -37,7 +41,7 @@ OFFSET
   %d
 LIMIT
   %d`, filter, p.Order, p.Offset, p.Limit)
-	rows, err := d.db.QueryRows(query, ...args)
+	rows, err := d.db.Queryx(query, args...)
 	if err != nil {
 		return nil, err
 	}
@@ -60,20 +64,20 @@ LIMIT
 	return &response, err
 }
 
-func (d DAO) {{ table.name|string.capitalize }}Insert(body {{ table.name|string.capitalize }}) err {
-	_, err := d.db.Exec(`
+func (d DAO) {{ table.name|string.capitalize }}Insert(body *{{ table.name|string.capitalize }}) error {
+	row := d.db.QueryRowx(`
 INSERT INTO
   {{ table.name }} (
-    {{~ for column in columns
+    {{~ for column in table.columns
             if column.auto_increment continue end
         end ~}}
-      "{{ column.name }}"{{ if for.index < columns.length - 1 }},{{ end }}
+      "{{ column.name }}"{{ if for.index < table.columns.length - 1 }},{{ end }}
     {{~ end ~}})
 VALUES
-  {{~ for column in columns ~}}
-  {{~ end ~}}
-`, {{ for column in columns }}body.C_{{ column.name }}{{ end }})
-	return err
+  ({{ for column in table.columns }}${{ for.index + 2 }}{{ end }})
+RETURNING {{ if table.primary_key }}{{ table.primary_key.column }}{{ else }}{{ table.columns[0].name }}{{ end }}
+`, {{ for column in table.columns }}body.C_{{ column.name }}{{ end }})
+	return row.Scan(&body.C_{{ if table.primary_key }}{{ table.primary_key.column }}{{ else }}{{ table.columns[0].name }}{{ end }})
 }
 
 {{ if table.primaryKey }}
@@ -82,12 +86,12 @@ func (d DAO) {{ table.name|string.capitalize }}Update(key {{ table.primaryKey.go
 UPDATE
   "{{ table.name }}"
 SET
-  {{~ for column in columns ~}}
-  "{{column.name}}" = ${{ for.index + 1 }}{{ if for.index < columns.length }},{{ end }}
+  {{~ for column in table.columns ~}}
+  "{{column.name}}" = ${{ for.index + 2 }}{{ if for.index < table.columns.length - 1 }},{{ end }}
   {{~ end ~}}
 WHERE
   {{ table.primaryKey.name }} = $1
-`, id, {{ for column in columns }}body.C_{{ column.name }}{{ if for.index < columns.length - 1 }},{{ end }}{{ end }})
+`, id, {{ for column in table.columns }}body.C_{{ column.name }}{{ if for.index < table.columns.length - 1 }},{{ end }}{{ end }})
 	return err
 }
 

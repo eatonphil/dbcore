@@ -1,5 +1,5 @@
-Example usage:
+To build the todo app:
 
 ```bash
-./examples/todo/scripts/generate.sh
+dotnet run ./examples/todo
 ```

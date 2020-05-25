@@ -4,6 +4,5 @@ database:
   password: todo
 
 api:
-  language: go
   repo: github.com/eatonphil/genapp-todo
   project: genapp_todo

@@ -2,4 +2,4 @@
 
 set -eux
 
-dotnet run localhost todo todo todo
+dotnet run ./examples/todo

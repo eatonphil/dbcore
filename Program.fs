@@ -1,26 +1,23 @@
-﻿open System
-
-open FSharp.Configuration
-open Npgsql
+﻿open System.IO
 
 open Database
 
-// See: https://stackoverflow.com/a/30903481/1507139
-type Config =
-    {
-        
-    }
-
-let getConfig () : Config =
 
 [<EntryPoint>]
-let main args =
-    let config = getConfig()
+let main (args: string []): int =
+    let projectDir = if args.Length > 0
+                         then args.[0]
+                         else failwith "Expected project directory"
 
-    let db = new DatabaseReader(
-        config.Database.Host,
-        config.Database.Database,
-        config.Database.Username,
-        config.Database.Password)
-    let tables = db.getTables()
+    // TODO: validate file
+    let config = Config.GetConfig(Path.Combine(projectDir, "genapp.yml"))
+
+    let db = Database.MakeDatabaseReader(config.Database)
+    let tables = db.GetTables()
+
+    let template = Template.MakeEngine(
+                       Path.Combine("templates", config.Api.Language),
+                       Path.Combine(projectDir, config.Api.Outdir))
+    template.Write({| Tables = tables; Api = config.Api |})
+
     0

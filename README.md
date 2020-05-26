@@ -1,24 +1,19 @@
-# Genapp
+# DBCore
 
-Genapp is a code generator build around database schemas. Applications
-are configured with a `genapp.yml` file in the project directory and
-existing database tables. Genapp will generate an API for you.
-
-## Dependencies
-
-* Go
-* PostgreSQL
-* .NET Core
+DBCore is a code generator build around database schemas. Included
+with dbcore are templates for generating a Go REST API and a
+React/TypeScript browser frontend.
 
 ## Example
 
 To build the todo app:
 
 ```bash
-$ git clone git@github.com:eatonphil/genapp
-$ cd genapp
+$ git clone git@github.com:eatonphil/dbcore
+$ cd dbcore
 $ dotnet run ./examples/todo
 $ cd ./examples/todo/go
+$ go build ./cmd/main.go
 $ ./main
 INFO[0000] Starting server at :9090                      pkg=server struct=Server
 ... in a new window ...
@@ -37,6 +32,29 @@ $ curl 'localhost:9090/users?limit=25&offset=0&sortColumn=id&sortOrder=desc' | j
   ]
 }
 ```
+
+## Dependencies
+
+* Go
+* PostgreSQL
+* .NET Core
+
+## Features
+
+### Core
+
+* Read from a PostgreSQL database:
+  * Tables (and their columns, primary key, and foreign keys)
+* Copy `template/api/<template>` directory, filling out [Liquid-style templates](https://github.com/lunet-io/scriban/blob/master/doc/language.md)
+
+### Go API Features
+
+* YAML-based configuration
+* Clean shutdown
+* Endpoints and models for:
+  * Get, insert, update, delete
+  * Get many with filtering, sorting, and pagination 
+
 
 ## Restrictions
 

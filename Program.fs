@@ -10,7 +10,7 @@ let main (args: string []): int =
                          else failwith "Expected project directory"
 
     // TODO: validate file
-    let config = Config.GetConfig(Path.Combine(projectDir, "genapp.yml"))
+    let config = Config.GetConfig(Path.Combine(projectDir, "dbcore.yml"))
 
     let db = Database.MakeDatabaseReader(config.Database)
     let tables = db.GetTables()

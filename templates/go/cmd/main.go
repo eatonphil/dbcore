@@ -4,7 +4,7 @@ import "fmt"
 import "{{api.repo}}/go/pkg/server"
 
 func main() {
-	cfg, err := server.NewConfig("../genapp.yml")
+	cfg, err := server.NewConfig("../dbcore.yml")
 	if err != nil {
 		panic(err)
 	}

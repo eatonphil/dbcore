@@ -23,8 +23,9 @@ func (c Config) GetString(arg string, defaults ...string) string {
 	panic(fmt.Sprintf("Missing required configuration: %s", arg))
 }
 
-func NewConfig(file string) *Config {
+func NewConfig(file string) (*Config, error) {
 	v := viper.New()
 	v.SetConfigFile(file)
-	return &Config{v}
+	err := v.ReadInConfig()
+	return &Config{v}, err
 }

@@ -7,6 +7,8 @@ open YamlDotNet.Serialization.NamingConventions
 
 
 type DatabaseConfig() =
+    // TODO: only postgres is supported
+    member val Dialect = "postgres" with get, set
     member val Host = "localhost" with get, set
     member val Port = "5432" with get, set
     member val Database = "" with get, set

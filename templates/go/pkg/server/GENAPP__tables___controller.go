@@ -33,7 +33,7 @@ func (s Server) {{ table.name }}CreateController(w http.ResponseWriter, r *http.
 		return
 	}
 
-	err := s.dao.{{ table.name|string.capitalize }}Insert(&body)
+	err = s.dao.{{ table.name|string.capitalize }}Insert(&body)
 	if err != nil {
 		sendErrorResponse(w, err)
 		return
@@ -42,7 +42,7 @@ func (s Server) {{ table.name }}CreateController(w http.ResponseWriter, r *http.
 	sendResponse(w, body)
 }
 
-{{ if table.primary_key }}
+{{ if table.primary_key.is_some }}
 func (s Server) {{ table.name }}GetController(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	result, err := s.dao.{{ table.name|string.capitalize }}Get(ps.ByName("key"))
 	if err != nil {
@@ -55,9 +55,10 @@ func (s Server) {{ table.name }}GetController(w http.ResponseWriter, r *http.Req
 
 func (s Server) {{ table.name }}UpdateController(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	var body dao.{{ table.name|string.capitalize }}
-	err = getBody(r, &body)
+	err := getBody(r, &body)
 	if err != nil {
-		sendValidationErrorResponse(w, "Expected valid JSON", err)
+		s.logger.Debug("Expected valid JSON, got: %s", err)
+		sendValidationErrorResponse(w, "Expected valid JSON")
 		return
 	}
 

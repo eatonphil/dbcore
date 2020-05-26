@@ -1,4 +1,5 @@
 database:
+  dialect: postgres
   database: todo
   username: todo
   password: todo

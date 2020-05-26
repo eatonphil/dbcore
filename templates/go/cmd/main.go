@@ -1,8 +1,18 @@
 package main
 
+import "fmt"
 import "{{api.repo}}/pkg/server"
 
 func main() {
-	s := server.New(server.NewConfig("/etc/{{api.project}}.yml"))
+	cfg, err := server.NewConfig("../genapp.yml")
+	if err != nil {
+		panic(err)
+	}
+
+	s, err := server.New(cfg)
+	if err != nil {
+		panic(err)
+	}
+
 	s.Start()
 }

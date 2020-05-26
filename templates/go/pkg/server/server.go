@@ -17,7 +17,7 @@ import (
 type Server struct {
 	dao *dao.DAO
 	router *httprouter.Router
-	logger *logrus.FieldLogger
+	logger logrus.FieldLogger
 	address string
 }
 
@@ -26,7 +26,7 @@ func (s Server) registerControllers() {
 	// Register {{table.name}} routes
 	s.router.GET("/{{table.name}}", s.{{table.name}}GetManyController)
 	s.router.POST("/{{table.name}}/new", s.{{table.name}}CreateController)
-	{{~ if table.primary_key ~}}
+	{{~ if table.primary_key.is_some ~}}
 	s.router.GET("/{{table.name}}/:key", s.{{table.name}}GetController)
 	s.router.PUT("/{{table.name}}/:key", s.{{table.name}}UpdateController)
 	s.router.DELETE("/{{table.name}}/:key", s.{{table.name}}DeleteController)
@@ -72,8 +72,14 @@ func (s Server) Start() {
 	s.registerSigintHandler(srv)
 }
 
-func New(conf Config) (*Server, error) {
-	db, err := sqlx.Connect(conf.GetString("database.dialect"), conf.GetString("database.dsn"))
+func New(conf *Config) (*Server, error) {
+	dsn := fmt.Sprintf("%s:%s@%s:%s/%s",
+		conf.GetString("database.username")
+		conf.GetString("database.password")
+		conf.GetString("database.host", "localhost"),
+		conf.GetString("database.port", "5432"),
+		conf.GetString("database.database"))
+	db, err := sqlx.Connect(conf.GetString("database.dialect"), dsn)
 	if err != nil {
 		return nil, err
 	}

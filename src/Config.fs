@@ -17,21 +17,35 @@ type DatabaseConfig() =
     member val Parameters = "" with get, set
 
 
-type ApiConfig() =
+type ProjectConfig() =
     let mutable outdir = ""
     member this.OutDir
-        with get() = if outdir = "" then this.Language else ""
+        with get() = if outdir = "" then this.Template else ""
         and set(value) = outdir <- value
 
-    member val Language = "go" with get, set
+    member val Template = "" with get, set
+
+
+type ApiConfig() =
+    inherit ProjectConfig()
+
+    member val Template = "go" with get, set
     member val Repo = "" with get, set
-    member val Project = "" with get, set
+    member val Address = "" with get, set
+
+
+type BrowserConfig() =
+    inherit ProjectConfig()
+
+    member val Template = "react-ts" with get, set
     member val Address = "" with get, set
 
 
 type Config() =
     member val Database = DatabaseConfig() with get, set
     member val Api = ApiConfig() with get, set
+    member val Browser = BrowserConfig() with get, set
+    member val Project = "" with get, set
 
 
 let GetConfig(f: string) : Config =

@@ -1,4 +1,4 @@
 #!/usr/bin/env bash
 
-go mod init {{ api.repo }}
+(cd .. && go mod init {{ api.repo }})
 goimports -w ./

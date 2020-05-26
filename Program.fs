@@ -1,5 +1,4 @@
-﻿open System.Diagnostics
-open System.IO
+﻿open System.IO
 
 open Database
 
@@ -16,16 +15,13 @@ let main (args: string []): int =
     let db = Database.MakeDatabaseReader(config.Database)
     let tables = db.GetTables()
 
-    let template = Template.MakeEngine(
-                       Path.Combine("templates", config.Api.Language),
-                       Path.Combine(projectDir, config.Api.OutDir))
-    template.Write({| Tables = tables; Api = config.Api |})
-
-    let processInfo = new ProcessStartInfo(
-                          FileName = "bash",
-                          Arguments = "scripts/post-generate.sh",
-                          WorkingDirectory = Path.Combine(projectDir, config.Api.OutDir))
-    use p = Process.Start(processInfo)
-    p.WaitForExit()
+    let ctx: Template.Context = {
+        Project = config.Project
+        Api = config.Api
+        Browser = config.Browser
+        Tables = tables
+    }
+    Template.Generate(projectDir, config.Api, ctx)
+    Template.Generate(projectDir, config.Browser, ctx)
 
     0

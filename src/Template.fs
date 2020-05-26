@@ -1,5 +1,6 @@
 module Template
 
+open System.Diagnostics
 open System.IO
 open System.Text.RegularExpressions
 
@@ -14,13 +15,23 @@ let rec private getFiles(dir: string) : seq<string> =
     }
 
 
+[<NoComparison>]
+type Context =
+    {
+        Project: string
+        Tables: Database.Table[]
+        Api: Config.ApiConfig
+        Browser: Config.BrowserConfig
+    }
+
+
 type Engine =
     {
         SourceDir: string
         OutDir: string
     }
 
-    member this.Write(ctx: {| Tables: Database.Table[]; Api: Config.ApiConfig |}) =
+    member this.WriteProjectToDisk(ctx: Context) =
         for f in getFiles(this.SourceDir) do
             let tpl = Template.Parse(File.ReadAllText(f), f)
 
@@ -43,8 +54,16 @@ type Engine =
                 File.WriteAllText(outFile, tpl.Render(ctx))
 
 
-let MakeEngine(sourceDir: string, outDir: string) : Engine =
-    {
-        SourceDir = sourceDir
-        OutDir = outDir
+let Generate(projectDir: string, cfg: Config.ProjectConfig, ctx: Context) =
+    let engine = {
+        SourceDir = Path.Combine("templates", cfg.Template)
+        OutDir = Path.Combine(projectDir, cfg.OutDir)
     }
+    engine.WriteProjectToDisk(ctx)
+
+    let processInfo = new ProcessStartInfo(
+                          FileName = "bash",
+                          Arguments = "scripts/post-generate.sh",
+                          WorkingDirectory = Path.Combine(projectDir, cfg.OutDir))
+    use p = Process.Start(processInfo)
+    p.WaitForExit()

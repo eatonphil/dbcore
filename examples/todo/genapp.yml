@@ -1,3 +1,5 @@
+project: genapp-todo
+
 database:
   dialect: postgres
   database: todo
@@ -6,6 +8,8 @@ database:
   parameters: ?sslmode=disable
 
 api:
-  repo: github.com/eatonphil/genapp-todo
-  project: genapp_todo
+  repo: github.com/eatonphil/genapp-todo/go
   address: :9090
+
+browser:
+  address: :9091

@@ -5,7 +5,7 @@ import (
 
 	"github.com/julienschmidt/httprouter"
 
-	"{{ api.repo }}/pkg/dao"
+	"{{ api.repo }}/go/pkg/dao"
 )
 
 func (s Server) {{ table.name }}GetManyController(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {

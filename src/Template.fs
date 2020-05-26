@@ -61,6 +61,8 @@ let Generate(projectDir: string, cfg: Config.ProjectConfig, ctx: Context) =
     }
     engine.WriteProjectToDisk(ctx)
 
+    printfn "[DEBUG] Running post install script: %s"
+        (Path.Combine(projectDir, cfg.OutDir, "scripts/post-generate.sh"))
     let processInfo = new ProcessStartInfo(
                           FileName = "bash",
                           Arguments = "scripts/post-generate.sh",

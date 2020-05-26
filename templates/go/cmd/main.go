@@ -1,7 +1,7 @@
 package main
 
 import "fmt"
-import "{{api.repo}}/pkg/server"
+import "{{api.repo}}/go/pkg/server"
 
 func main() {
 	cfg, err := server.NewConfig("../genapp.yml")

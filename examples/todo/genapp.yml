@@ -8,7 +8,7 @@ database:
   parameters: ?sslmode=disable
 
 api:
-  repo: github.com/eatonphil/genapp-todo/go
+  repo: github.com/eatonphil/genapp-todo
   address: :9090
 
 browser:

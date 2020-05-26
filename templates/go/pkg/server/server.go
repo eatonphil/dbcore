@@ -11,7 +11,7 @@ import (
 	_ "github.com/lib/pq"
 	"github.com/sirupsen/logrus"
 
-	"{{api.repo}}/pkg/dao"
+	"{{api.repo}}/go/pkg/dao"
 )
 
 type Server struct {

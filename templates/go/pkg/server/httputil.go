@@ -8,7 +8,7 @@ import (
 
 	"github.com/Masterminds/squirrel"
 
-	"{{ api.repo }}/pkg/dao"
+	"{{ api.repo }}/go/pkg/dao"
 )
 
 func sendValidationErrorResponse(w http.ResponseWriter, msg string) {

@@ -17,19 +17,23 @@ type DatabaseConfig() =
     member val Parameters = "" with get, set
 
 
+[<AbstractClass>]
 type ProjectConfig() =
-    let mutable outdir = ""
-    member this.OutDir
-        with get() = if outdir = "" then this.Template else ""
-        and set(value) = outdir <- value
-
-    member val Template = "" with get, set
+    abstract OutDir : string with get, set
+    abstract Template : string with get, set
 
 
 type ApiConfig() =
     inherit ProjectConfig()
 
-    member val Template = "go" with get, set
+    let mutable outdir = ""
+    override this.OutDir
+        with get() = if outdir = "" then this.Template else ""
+        and set(value) = outdir <- value
+
+
+    override val Template = "go" with get, set
+
     member val Repo = "" with get, set
     member val Address = "" with get, set
 
@@ -37,7 +41,13 @@ type ApiConfig() =
 type BrowserConfig() =
     inherit ProjectConfig()
 
-    member val Template = "react-ts" with get, set
+    let mutable outdir = ""
+    override this.OutDir
+        with get() = if outdir = "" then this.Template else ""
+        and set(value) = outdir <- value
+
+    override val Template = "react-ts" with get, set
+
     member val Address = "" with get, set
 
 

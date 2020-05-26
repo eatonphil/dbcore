@@ -22,9 +22,9 @@ $ cd ./examples/todo/go
 $ ./main
 INFO[0000] Starting server at :9090                      pkg=server struct=Server
 ... in a new window ...
-$ curl -X POST -d '{"username": "phil", "password": "phil", "name": "Phil"}' 'localhost:9090/users/new'
+$ curl -X POST -d '{"username": "phil", "password": "phil", "name": "Phil"}' localhost:9090/users/new
 {"id":1,"username":"phil","password":"phil","name":"Phil"}
-$ curl 'localhost:9090/users?limit=25&offset=0&sortColumn=id&sortOrder=desc' | jq '.'
+$ curl 'localhost:9090/users?limit=25&offset=0&sortColumn=id&sortOrder=desc' | jq
 {
   "total": 1,
   "data": [

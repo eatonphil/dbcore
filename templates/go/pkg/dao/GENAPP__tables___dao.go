@@ -15,8 +15,8 @@ type {{ table.name|string.capitalize }} struct {
 }
 
 type {{ table.name|string.capitalize }}PaginatedResponse struct {
-	Total uint64
-	Data []{{ table.name|string.capitalize }}
+	Total uint64 `json:"total"`
+	Data []{{ table.name|string.capitalize }} `json:"data"`
 }
 
 func (d DAO) {{ table.name|string.capitalize }}GetMany(where squirrel.Sqlizer, p Pagination) (*{{ table.name|string.capitalize }}PaginatedResponse, error) {
@@ -37,11 +37,10 @@ SELECT
   {{~ for column in table.columns ~}}
   "{{ column.name }}",
   {{~ end ~}}
-  COUNT() OVER () AS __total
+  COUNT(1) OVER () AS __total
 FROM
   "{{table.name}}"
-WHERE
-  %s
+%s
 ORDER BY
   %s
 OFFSET
@@ -81,11 +80,13 @@ INSERT INTO {{ table.name }} (
   "{{ column.name }}"{{ if !for.last }},{{ end }}
   {{~ end ~}})
 VALUES (
+  {{~ index = 0 ~}}
   {{~ for column in table.columns ~}}
   {{~ if column.auto_increment
          continue
       end ~}}
-  ${{ for.index + 1 }}{{ if !for.last }}, {{ end }}
+  ${{ index + 1 }}{{ if !for.last }}, {{ end }}
+  {{~ index = index + 1 ~}}
   {{~ end ~}})
 RETURNING {{ if table.primary_key.is_some }}{{ table.primary_key.value.column }}{{ else }}{{ table.columns[0].name }}{{ end }}
 `, {{~ for column in table.columns ~}}{{~ if column.auto_increment

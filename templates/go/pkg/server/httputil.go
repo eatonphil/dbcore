@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/Masterminds/squirrel"
 
@@ -60,15 +61,20 @@ func getFilterAndPageInfo(r *http.Request) (squirrel.Sqlizer, *dao.Pagination, e
 		return nil, nil, err
 	}
 
-	order := r.URL.Query().Get("order")
-	if order == "" {
-		return nil, nil, fmt.Errorf(`Expected "order" parameter`)
+	sortColumn := r.URL.Query().Get("sortColumn")
+	if sortColumn == "" {
+		return nil, nil, fmt.Errorf(`Expected "sortColumn" parameter`)
+	}
+
+	sortOrder := strings.ToLower(r.URL.Query().Get("sortOrder"))
+	if !(sortOrder == "asc" || sortOrder == "desc") {
+		return nil, nil, fmt.Errorf(`Expected "sortOrder" parameter to be "asc" or "desc"`)
 	}
 
 	// TODO: support actual squirrel filters
 	return nil, &dao.Pagination{
 		Limit: limit,
 		Offset: offset,
-		Order: order,
+		Order: sortColumn + " " + sortOrder,
 	}, nil
 }

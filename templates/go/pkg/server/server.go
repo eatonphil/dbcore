@@ -54,13 +54,14 @@ func (s Server) Start() {
 	s.registerControllers()
 
 	srv := &http.Server{
-		Handler: s.router,
+		Handler: loggerRouter{s.logger, s.router},
 		Addr:    s.address,
 		WriteTimeout: 15 * time.Second,
 		ReadTimeout:  15 * time.Second,
 	}
 
 	go func() {
+		s.logger.Infof("Starting server at %s", s.address)
 		if err := srv.ListenAndServe(); err != nil {
 			s.logger.Warnf("Exiting server with error: %s", err)
 			return

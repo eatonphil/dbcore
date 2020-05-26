@@ -14,6 +14,7 @@ type DatabaseConfig() =
     member val Database = "" with get, set
     member val Username = "" with get, set
     member val Password = "" with get, set
+    member val Parameters = "" with get, set
 
 
 type ApiConfig() =
@@ -25,6 +26,7 @@ type ApiConfig() =
     member val Language = "go" with get, set
     member val Repo = "" with get, set
     member val Project = "" with get, set
+    member val Address = "" with get, set
 
 
 type Config() =

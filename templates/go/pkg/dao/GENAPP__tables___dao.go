@@ -20,9 +20,16 @@ type {{ table.name|string.capitalize }}PaginatedResponse struct {
 }
 
 func (d DAO) {{ table.name|string.capitalize }}GetMany(where squirrel.Sqlizer, p Pagination) (*{{ table.name|string.capitalize }}PaginatedResponse, error) {
-	filter, args, err := where.ToSql()
-	if err != nil {
-		return nil, err
+	var filter string
+	var args []interface{}
+	if where != nil {
+		var err error
+		filter, args, err = where.ToSql()
+		if err != nil {
+			return nil, err
+		}
+
+		filter = "WHERE " + filter
 	}
 
 	query := fmt.Sprintf(`

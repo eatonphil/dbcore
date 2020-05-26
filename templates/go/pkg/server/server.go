@@ -73,13 +73,16 @@ func (s Server) Start() {
 }
 
 func New(conf *Config) (*Server, error) {
-	dsn := fmt.Sprintf("%s:%s@%s:%s/%s",
-		conf.GetString("database.username")
-		conf.GetString("database.password")
+	dialect := conf.GetString("database.dialect")
+	dsn := fmt.Sprintf("%s://%s:%s@%s:%s/%s%s",
+		dialect,
+		conf.GetString("database.username"),
+		conf.GetString("database.password"),
 		conf.GetString("database.host", "localhost"),
 		conf.GetString("database.port", "5432"),
-		conf.GetString("database.database"))
-	db, err := sqlx.Connect(conf.GetString("database.dialect"), dsn)
+		conf.GetString("database.database"),
+		conf.GetString("database.parameters"))
+	db, err := sqlx.Connect(dialect, dsn)
 	if err != nil {
 		return nil, err
 	}
@@ -94,5 +97,6 @@ func New(conf *Config) (*Server, error) {
 			"struct": "Server",
 			"pkg": "server",
 		}),
+		address: conf.GetString("api.address", ":9090"),
 	}, nil
 }

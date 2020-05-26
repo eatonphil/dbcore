@@ -3,7 +3,9 @@ database:
   database: todo
   username: todo
   password: todo
+  parameters: ?sslmode=disable
 
 api:
   repo: github.com/eatonphil/genapp-todo
   project: genapp_todo
+  address: :9090

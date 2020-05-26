@@ -60,16 +60,15 @@ func getFilterAndPageInfo(r *http.Request) (squirrel.Sqlizer, *dao.Pagination, e
 		return nil, nil, err
 	}
 
-	page, err := getSingleUintParameter("page")
-	if err != nil {
-		return nil, nil, err
+	order := r.URL.Query().Get("order")
+	if order == "" {
+		return nil, nil, fmt.Errorf(`Expected "order" parameter`)
 	}
 
 	// TODO: support actual squirrel filters
 	return nil, &dao.Pagination{
 		Limit: limit,
 		Offset: offset,
-		Page: page,
-		Order: r.URL.Query().Get("order"),
+		Order: order,
 	}, nil
 }

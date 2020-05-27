@@ -1,0 +1,42 @@
+body {
+    font-family: sans-serif;
+}
+
+.hero {
+    background: #e42352;
+    color: white;
+    padding: 150px 0;
+}
+
+.hero header {
+    font-size: xx-large;
+}
+
+.hero h1 {
+    margin: 0;
+}
+
+.container {
+    width: 100%;
+    max-width: 700px;
+    margin: 0 auto;
+}
+
+.container:before, .container:after{
+    content: ' ';
+    display: table;
+}
+
+subtitle {
+    font-weight: bold;
+}
+
+ul.checks {
+    list-style: none;
+}
+
+ul.checks li:before {
+    content: '\2713';
+    margin-left: -20px;
+    margin-right: 10px;
+}

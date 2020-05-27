@@ -1,4 +1,4 @@
-project: genapp-todo
+project: dbcore-todo
 
 database:
   dialect: postgres
@@ -8,8 +8,11 @@ database:
   parameters: ?sslmode=disable
 
 api:
-  repo: github.com/eatonphil/genapp-todo
   address: :9090
+  template: go
+  outDir: go
+  extra:
+    repo: github.com/eatonphil/dbcore-todo
 
 browser:
   address: :9091

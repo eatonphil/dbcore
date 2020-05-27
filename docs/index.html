@@ -148,6 +148,38 @@ api:
 	<h3>Example</h3>
 	<pre><code>$ curl -X POST -d '{"username": "alex", "password": "alex", "name": "Alex"}' localhost:9090/v1/users/new
 {"id":1,"username":"alex","password":"alex","name":"Alex"}</code></pre>
+
+	<h2>Get a row</h2>
+	<p>
+	  Make a <code>GET</code> request to <code>/$version/$table/$id</code>.
+	</p>
+	<p>
+	  This endpoint is only available if the table has a primary key.
+	</p>
+	<h3>Example</h3>
+	<pre><code>$ curl localhost:9090/v1/users/1
+{"id":1,"username":"alex","password":"alex","name":"Alex"}</code></pre>
+
+	<h2>Update a row</h2>
+	<p>
+	  Make a <code>PUT</code> request to <code>/$version/$table/$id</code>.
+	</p>
+	<p>
+	  This endpoint is only available if the table has a primary key.
+	</p>
+	<h3>Example</h3>
+	<pre><code>$ curl -X PUT -d '{"id": 1, "username": "alex", "password": "alex", "name": "Alex K"}' localhost:9090/v1/users/1
+{"id":1,"username":"alex","password":"alex","name":"Alex K"}</code></pre>
+
+	<h2>Delete a row</h2>
+	<p>
+	  Make a <code>DELETE</code> request to <code>/$version/$table/$id</code>.
+	</p>
+	<p>
+	  This endpoint is only available if the table has a primary key.
+	</p>
+	<h3>Example</h3>
+	<pre><code>$ curl -X DELETE localhost:9090/v1/users/1</code></pre>
       </div>
     </section>
 

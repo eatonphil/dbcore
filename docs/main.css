@@ -11,7 +11,7 @@ section {
 }
 
 section:nth-child(odd) {
-    background: #eee;
+    background: #f0f0f0;
 }
 
 table {
@@ -53,10 +53,22 @@ pre {
     margin-left: -100px;
 }
 
+code {
+    background: #ddd;
+    color: #e42352;
+    padding: 0 5px;
+}
+
+pre code {
+    background: initial;
+    color: initial;
+    padding: initial;
+}
+
 section.hero {
     padding: 100px 0;
     background: #e42352;
-    color: #fcfcfc;
+    color: white;
 }
 
 .hero header {
@@ -85,6 +97,7 @@ section.hero {
 
 .hero li:before {
     content: '\2713';
+    color: #afffaf;
     margin-left: -20px;
     margin-right: 10px;
 }

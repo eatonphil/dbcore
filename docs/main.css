@@ -14,6 +14,10 @@ section:nth-child(odd) {
     background: #f0f0f0;
 }
 
+section:nth-child(odd) code {
+    background: #ddd;
+}
+
 table {
     width: 100%;
     border: 1px solid #ccc;
@@ -46,7 +50,7 @@ th, tr:not(:last-of-type) td {
 
 pre {
     background: white;
-    border: 1px solid #ddd;
+    border: 1px solid #eee;
     padding: 50px;
     overflow: auto;
     width: 800px;
@@ -54,13 +58,13 @@ pre {
 }
 
 code {
-    background: #ddd;
+    background: #eee;
     color: #e42352;
     padding: 0 5px;
 }
 
 pre code {
-    background: initial;
+    background: initial !important;
     color: initial;
     padding: initial;
 }

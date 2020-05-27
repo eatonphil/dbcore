@@ -6,20 +6,31 @@
     <meta name="description" content="Code generation powered by your database.">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <link rel="stylesheet" href="reset.css">
-    <link rel="stylesheet" href="main.css">
+    <link rel="stylesheet" href="/reset.css">
+    <link rel="stylesheet" href="/main.css">
+    <link rel="shortcut icon" href="logo.png" type="image/x-icon">
   </head>
 
   <body>
     <section class="hero">
       <div class="container">
         <header>
-          <h1>DBCore</h1>
-          <subtitle>Code generation powered by your database.</subtitle>
+	  <div class="d-flex">
+	    <img src="/logo.png">
+            <h1>DBCore</h1>
+	  </div>
+	  <subtitle>Code generation powered by your database.</subtitle>
         </header>
         <p>
-        <ul class="checks">	
-          <li>Generate a REST API with a standard specification and CRUD UI</li>
+        <ul class="checks">
+          <li>
+	    Generate REST API and CRUD browser frontend
+	    <ul class="checks">
+	      <li>Standard API specification</li>
+	      <li>Authentication included</li>
+	      <li>Auditing included</li>
+	    </ul>
+	  </li>
           <li>Write your own templates to generate database-driven code in any language</li>
 	  <li>MIT license</li>
         </ul>
@@ -60,24 +71,33 @@
 	</p>
         <pre>
           <code>
-          project: <project-name>
-          database:
-            dialect: postgres
-            host: $host-or-ip # Omit if localhost
-            port: $port # Omit if 5432
-            database: $database-name
-            username: $username
-            password: $password
-            parameters: ?sslmode=disable # For development, for production omit
+project: $project-name
+database:
+  dialect: postgres
 
-          api:
-            template: go
-            outDir: go
-            version: $version-prefix # e.g. "v1", for URLs
-	    address: :8080
-            extra:
-              repo: $your-repo
-          </code>
+  # Omit if localhost
+  host: $host-or-ip
+
+  # Omit if 5432
+  port: $port
+
+  database: $database-name
+  username: $username
+  password: $password
+
+  # Omit this in production
+  parameters: ?sslmode=disable
+
+api:
+  template: go
+  outDir: go
+
+  # e.g. "v1", for URLs
+  version: $version-prefix
+
+  address: :8080
+  extra:
+    repo: $your-repo</code>
         </pre>
 	<p>
 	  Clone the repo and run <code>dotnet run $path-to-your-project</code>
@@ -91,21 +111,28 @@
     </section>
 
     <section id="api-specification">
-      <header>
-        <h1>API Specification</h1>
-      </header>
+      <div class="container">
+	<header>
+          <h1>API Specification</h1>
+	</header>
+	<p></p>
+      </div>
     </section>
 
     <section id="generating-a-react-typescript-ui">
-      <header>
-        <h1>Generating a React TypeScript UI</h1>
-      </header>
+      <div class="container">
+	<header>
+          <h1>Generating a React TypeScript UI</h1>
+	</header>
+      </div>
     </section>
 
     <section id="writing-your-own-templates">
-      <header>
-        <h1>Writing your own templates</h1>
-      </header>
+      <div class="container">
+	<header>
+          <h1>Writing your own templates</h1>
+	</header>
+      </div>
     </section>
   </body>
 </html>

@@ -2,23 +2,17 @@ body {
     font-family: sans-serif;
 }
 
-.hero {
-    background: #e42352;
-    color: white;
-    padding: 150px 0;
+section {
+    padding: 50px 0;
 }
 
-.hero header {
-    font-size: xx-large;
-}
-
-.hero h1 {
-    margin: 0;
+section:nth-child(odd) {
+    background: #eee;
 }
 
 .container {
     width: 100%;
-    max-width: 700px;
+    max-width: 600px;
     margin: 0 auto;
 }
 
@@ -27,16 +21,54 @@ body {
     display: table;
 }
 
-subtitle {
+.d-flex {
+    display: flex;
+    align-items: center;
+}
+
+pre {
+    background: white;
+    border: 1px solid #ddd;
+    padding: 5px 15px;
+    overflow: auto;
+}
+
+section.hero {
+    padding: 100px 0;
+    background: #e42352;
+    color: #fcfcfc;
+}
+
+.hero header {
+    color: white;
+}
+
+.hero img {
+    width: 100px;
+    height: 100px;
+    padding-right: 20px;
+}
+
+.hero h1 {
+    margin: 0;
+    font-size: 100px;
+}
+
+.hero subtitle {
+    font-size: x-large;
     font-weight: bold;
 }
 
-ul.checks {
+.hero ul {
     list-style: none;
 }
 
-ul.checks li:before {
+.hero li:before {
     content: '\2713';
     margin-left: -20px;
     margin-right: 10px;
+}
+
+.hero li {
+    padding: 3px 0;
 }

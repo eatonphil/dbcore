@@ -1,3 +1,7 @@
+* {
+    box-sizing: border-box;
+}
+
 body {
     font-family: sans-serif;
 }
@@ -8,6 +12,20 @@ section {
 
 section:nth-child(odd) {
     background: #eee;
+}
+
+table {
+    width: 100%;
+    border: 1px solid #ccc;
+}
+
+th, td {
+    text-align: left;
+    padding: 15px;
+}
+
+th, tr:not(:last-of-type) td {
+    border-bottom: 1px solid #ccc;
 }
 
 .container {
@@ -29,8 +47,10 @@ section:nth-child(odd) {
 pre {
     background: white;
     border: 1px solid #ddd;
-    padding: 5px 15px;
+    padding: 50px;
     overflow: auto;
+    width: 800px;
+    margin-left: -100px;
 }
 
 section.hero {
@@ -72,3 +92,16 @@ section.hero {
 .hero li {
     padding: 3px 0;
 }
+
+@media (max-width: 800px) {
+    .container {
+	width: 100%;
+	padding: 0 15px;
+    }
+
+    pre {
+	width: 100%;
+	margin-left: 0;
+    }
+}
+

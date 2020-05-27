@@ -37,30 +37,6 @@
       </div>
     </section>
 
-    <section class="toc">
-      <div class="container">
-        <header>
-          <h1>Contents</h1>
-          <ul>
-            <li>
-              API Documentation
-              <ul>
-                <li><a href="#generating-a-go-api">Generating a Go API</a></li>
-                <li><a href="#api-specification">API Specification</a></li>
-              </ul>
-            </li>
-            <li>
-              UI Documentation
-              <ul>
-                <li><a href="#generating-a-react-typescript-ui">Generating a React/TypeScript UI</a></li>
-              </ul>
-            </li>
-            <li><a href="#writing-your-own-templates">Writing your own templates</a></li>
-          </ul>
-        </header>
-      </div>
-    </section>
-
     <section id="generating-a-go-api">
       <div class="container">
         <header>
@@ -69,9 +45,7 @@
         <p>
           In your project root folder create a <code>dbcore.yml</code>:
 	</p>
-        <pre>
-          <code>
-project: $project-name
+        <pre><code>project: $project-name
 database:
   dialect: postgres
 
@@ -97,8 +71,7 @@ api:
 
   address: :8080
   extra:
-    repo: $your-repo</code>
-        </pre>
+    repo: $your-repo</code></pre>
 	<p>
 	  Clone the repo and run <code>dotnet run $path-to-your-project</code>
 	  within the repo root.
@@ -115,7 +88,66 @@ api:
 	<header>
           <h1>API Specification</h1>
 	</header>
-	<p></p>
+	<h2>Get many rows from a table</h2>
+	<p>
+	  Make a <code>GET</code> request to <code>/$version/$table</code>.
+	</p>
+	<h3>Query parameters</h3>
+	<table>
+	  <thead>
+	    <tr>
+	      <th>Parameter</th>
+	      <th>Definition</th>
+	      <th>Example</th>
+	    </tr>
+	  </thead>
+	  <tbody>
+	    <tr>
+	      <td><code>limit</code></td>
+	      <td>Number of rows to return</td>
+	      <td><code>limit=25</code></td>
+	    </tr>
+	    <tr>
+	      <td><code>offset</code></td>
+	      <td>Number of rows to skip</td>
+	      <td><code>offset=0</code></td>
+	    </tr>
+	    <tr>
+	      <td><code>sortColumn</code></td>
+	      <td>Column to sort on</td>
+	      <td><code>sortColumn=id</code></td>
+	    </tr>
+	    <tr>
+	      <td><code>sortOrder</code></td>
+	      <td>Order to sort (one of <code>asc</code> or <code>desc</code>)</td>
+	      <td><code>sortOrder=desc</code></td>
+	    </tr>
+	  </tbody>
+	</table>
+	<h3>Example</h3>
+	<pre><code>$ curl 'localhost:9090/v1/users?limit=25&offset=0&sortColumn=id&sortOrder=desc'
+{
+  "total": 1,
+  "data": [
+    {
+      "id": 1,
+      "username": "alex",
+      "password": "alex",
+      "name": "Alex"
+    },
+  ]
+}</code></pre>
+
+	<h2>Create a new row</h2>
+	<p>
+	  Make a <code>POST</code> request to <code>/$version/$table/new</code>.
+	</p>
+	<h3>Body</h3>
+	<p>
+	</p>
+	<h3>Example</h3>
+	<pre><code>$ curl -X POST -d '{"username": "alex", "password": "alex", "name": "Alex"}' localhost:9090/v1/users/new
+{"id":1,"username":"alex","password":"alex","name":"Alex"}</code></pre>
       </div>
     </section>
 

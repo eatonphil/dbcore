@@ -1,8 +1,13 @@
 # DBCore
 
-DBCore is a code generator build around database schemas. Included
-with dbcore are templates for generating a Go REST API and a
-React/TypeScript browser frontend.
+DBCore is a code generator build around database schemas and an API
+specification. Included with DBCore are templates for generating a Go
+REST API.
+
+The API specification supports basic CRUD operations with filtering,
+pagination, and sorting.
+
+[See the docs site for more detail.](https://eatonphil.github.io/dbcore/)
 
 ## Example
 
@@ -17,17 +22,17 @@ $ go build ./cmd/main.go
 $ ./main
 INFO[0000] Starting server at :9090                      pkg=server struct=Server
 ... in a new window ...
-$ curl -X POST -d '{"username": "phil", "password": "phil", "name": "Phil"}' localhost:9090/users/new
-{"id":1,"username":"phil","password":"phil","name":"Phil"}
+$ curl -X POST -d '{"username": "alex", "password": "alex", "name": "Alex"}' localhost:9090/users/new
+{"id":1,"username":"alex","password":"alex","name":"Alex"}
 $ curl 'localhost:9090/users?limit=25&offset=0&sortColumn=id&sortOrder=desc' | jq
 {
   "total": 1,
   "data": [
     {
       "id": 1,
-      "username": "phil",
-      "password": "phil",
-      "name": "Phil"
+      "username": "alex",
+      "password": "alex",
+      "name": "Alex"
     },
   ]
 }
@@ -39,23 +44,6 @@ $ curl 'localhost:9090/users?limit=25&offset=0&sortColumn=id&sortOrder=desc' | j
 * PostgreSQL
 * .NET Core
 
-## Features
-
-### Core
-
-* Read from a PostgreSQL database:
-  * Tables (and their columns, primary key, and foreign keys)
-* Copy `template/api/<template>` directory, filling out [Liquid-style templates](https://github.com/lunet-io/scriban/blob/master/doc/language.md)
-
-### Go API Features
-
-* YAML-based configuration
-* Clean shutdown
-* Endpoints and models for:
-  * Get, insert, update, delete
-  * Get many with filtering, sorting, and pagination 
-
-
 ## Restrictions
 
 There are a bunch of restrictions! Here are a few known ones. You will discover more.
@@ -65,7 +53,3 @@ There are a bunch of restrictions! Here are a few known ones. You will discover 
 * Only tables within the `public` schema supported
 * Only single-column foreign keys supported
 * Only Go API templates provided
-
-## Adding a new set of templates
-
-`scripts/post-generate.sh` is a required script. It can be empty.

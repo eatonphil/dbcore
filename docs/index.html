@@ -26,7 +26,7 @@
           <li>
 	    Generate REST APIs and CRUD browser frontends with:
 	    <ul class="checks">
-	      <li>A standard API</li>
+	      <li>A standard API (plus pagination, filtering, sorting)</li>
 	      <li>Authentication</li>
 	      <li>Custom hooks</li>
 	    </ul>
@@ -122,10 +122,15 @@ api:
 	      <td>Order to sort (one of <code>asc</code> or <code>desc</code>)</td>
 	      <td><code>sortOrder=desc</code></td>
 	    </tr>
+	    <tr>
+	      <td><code>filter</code></td>
+	      <td>SQL where filter to eliminate results</td>
+	      <td><code>filter=id>3</code></td>
+	    </tr>
 	  </tbody>
 	</table>
 	<h3>Example</h3>
-	<pre><code>$ curl 'localhost:9090/v1/users?limit=25&offset=0&sortColumn=id&sortOrder=desc'
+	<pre><code>$ curl 'localhost:9090/v1/users?limit=25&offset=0&sortColumn=id&sortOrder=desc&filter=id=1'
 {
   "total": 1,
   "data": [

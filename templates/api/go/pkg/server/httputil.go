@@ -7,9 +7,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/xwb1989/sqlparser"
-	"github.com/xwb1989/sqlparser/dependency/querypb"
-
 	"{{ api.extra.repo }}/go/pkg/dao"
 )
 
@@ -43,7 +40,7 @@ func getBody(r *http.Request, obj interface{}) error {
 	return decoder.Decode(obj)
 }
 
-func getFilterAndPageInfo(r *http.Request) (*sqlparser.Expr, *dao.Pagination, error) {
+func getFilterAndPageInfo(r *http.Request) (*dao.Filter, *dao.Pagination, error) {
 	getSingleUintParameter := func(param string) (uint64, error) {
 		values, ok := r.URL.Query()[param]
 		if !ok || len(values) == 0 {
@@ -73,21 +70,16 @@ func getFilterAndPageInfo(r *http.Request) (*sqlparser.Expr, *dao.Pagination, er
 		return nil, nil, fmt.Errorf(`Expected "sortOrder" parameter to be "asc" or "desc"`)
 	}
 
-	var parsedFilter *sqlparser.Expr
-	filter := r.URL.Query().Get("filter")
-	if filter != "" {
-		stmt, err := sqlparser.Parse("SELECT 1 WHERE " + filter)
+	var filter *dao.Filter
+	filterString := r.URL.Query().Get("filter")
+	if filterString != "" {
+		filter, err = dao.ParseFilter(filterString)
 		if err != nil {
 			return nil, nil, fmt.Errorf(`Expected valid "filter" parameter: %s`, err)
 		}
-
-		bv := map[string]*querypb.BindVariable{}
-		sqlparser.Normalize(stmt, bv, "")
-		fmt.Println(bv)
-		//parsedFilter = stmt.Where.Expr
 	}
 
-	return parsedFilter, &dao.Pagination{
+	return filter, &dao.Pagination{
 		Limit: limit,
 		Offset: offset,
 		Order: sortColumn + " " + sortOrder,

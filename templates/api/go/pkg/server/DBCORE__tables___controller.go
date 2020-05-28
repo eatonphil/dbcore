@@ -9,13 +9,13 @@ import (
 )
 
 func (s Server) {{ table.name }}GetManyController(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	_, pageInfo, err := getFilterAndPageInfo(r)
+	filter, pageInfo, err := getFilterAndPageInfo(r)
 	if err != nil {
 		sendErrorResponse(w, err)
 		return
 	}
 
-	result, err := s.dao.{{ table.name|string.capitalize }}GetMany(nil, *pageInfo)
+	result, err := s.dao.{{ table.name|string.capitalize }}GetMany(filter, *pageInfo)
 	if err != nil {
 		sendErrorResponse(w, err)
 		return

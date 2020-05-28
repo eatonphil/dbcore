@@ -1,11 +1,11 @@
 package dao
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/guregu/null"
 	"github.com/jmoiron/sqlx"
-	"github.com/xwb1989/sqlparser"
 )
 
 type {{ table.name|string.capitalize }} struct {
@@ -19,17 +19,9 @@ type {{ table.name|string.capitalize }}PaginatedResponse struct {
 	Data []{{ table.name|string.capitalize }} `json:"data"`
 }
 
-func (d DAO) {{ table.name|string.capitalize }}GetMany(where squirrel.Sqlizer, p Pagination) (*{{ table.name|string.capitalize }}PaginatedResponse, error) {
-	var filter string
-	var args []interface{}
-	if where != nil {
-		var err error
-		filter, args, err = where.ToSql()
-		if err != nil {
-			return nil, err
-		}
-
-		filter = "WHERE " + filter
+func (d DAO) {{ table.name|string.capitalize }}GetMany(where *Filter, p Pagination) (*{{ table.name|string.capitalize }}PaginatedResponse, error) {
+	if where == nil {
+		where = &Filter{}
 	}
 
 	query := fmt.Sprintf(`
@@ -46,13 +38,15 @@ ORDER BY
 OFFSET
   %d
 LIMIT
-  %d`, filter, p.Order, p.Offset, p.Limit)
-	rows, err := d.db.Queryx(query, args...)
+  %d`, where.filter, p.Order, p.Offset, p.Limit)
+	fmt.Println(query)
+	rows, err := d.db.Queryx(query, where.args...)
 	if err != nil {
 		return nil, err
 	}
 
 	var response {{ table.name|string.capitalize }}PaginatedResponse
+	response.Data = []{{ table.name|string.capitalize }}{}
 	for rows.Next() {
 		var row struct {
 			{{ table.name|string.capitalize }}

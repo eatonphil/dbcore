@@ -110,6 +110,11 @@ section.hero {
     padding: 3px 0;
 }
 
+.hero .star {
+    text-align: center;
+    padding: 15px 0;
+}
+
 @media (max-width: 800px) {
     .container {
 	width: 100%;

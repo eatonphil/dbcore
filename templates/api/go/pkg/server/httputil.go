@@ -2,13 +2,15 @@ package server
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
 
-	"github.com/Masterminds/squirrel"
+	"github.com/xwb1989/sqlparser"
+	"github.com/xwb1989/sqlparser/dependency/querypb"
 
-	"{{ api.repo }}/go/pkg/dao"
+	"{{ api.extra.repo }}/go/pkg/dao"
 )
 
 func sendValidationErrorResponse(w http.ResponseWriter, msg string) {
@@ -41,7 +43,7 @@ func getBody(r *http.Request, obj interface{}) error {
 	return decoder.Decode(obj)
 }
 
-func getFilterAndPageInfo(r *http.Request) (squirrel.Sqlizer, *dao.Pagination, error) {
+func getFilterAndPageInfo(r *http.Request) (*sqlparser.Expr, *dao.Pagination, error) {
 	getSingleUintParameter := func(param string) (uint64, error) {
 		values, ok := r.URL.Query()[param]
 		if !ok || len(values) == 0 {
@@ -71,8 +73,21 @@ func getFilterAndPageInfo(r *http.Request) (squirrel.Sqlizer, *dao.Pagination, e
 		return nil, nil, fmt.Errorf(`Expected "sortOrder" parameter to be "asc" or "desc"`)
 	}
 
-	// TODO: support actual squirrel filters
-	return nil, &dao.Pagination{
+	var parsedFilter *sqlparser.Expr
+	filter := r.URL.Query().Get("filter")
+	if filter != "" {
+		stmt, err := sqlparser.Parse("SELECT 1 WHERE " + filter)
+		if err != nil {
+			return nil, nil, fmt.Errorf(`Expected valid "filter" parameter: %s`, err)
+		}
+
+		bv := map[string]*querypb.BindVariable{}
+		sqlparser.Normalize(stmt, bv, "")
+		fmt.Println(bv)
+		//parsedFilter = stmt.Where.Expr
+	}
+
+	return parsedFilter, &dao.Pagination{
 		Limit: limit,
 		Offset: offset,
 		Order: sortColumn + " " + sortOrder,

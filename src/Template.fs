@@ -25,47 +25,47 @@ type Context =
     }
 
 
-type Engine =
-    {
-        SourceDir: string
-        OutDir: string
-    }
+let private writeProjectToDisk(sourceDir: string, outDir: string, ctx: Context) =
+    for f in getFiles(sourceDir) do
+        let tpl = Template.Parse(File.ReadAllText(f), f)
 
-    member this.WriteProjectToDisk(ctx: Context) =
-        for f in getFiles(this.SourceDir) do
-            let tpl = Template.Parse(File.ReadAllText(f), f)
+        // Drop the SourceDir/ prefix
+        let f = f.Substring(sourceDir.Length + 1)
+        // Handle the special case where files should be enumerated per table
+        let tableSubstitute = "DBCORE__tables__"
+        let fsAndCtxs =
+            if not (f.Contains tableSubstitute) then [(f, {| ctx with Table = ctx.Tables.[0] |})]
+            else [ for t in ctx.Tables do
+                       yield (f.Replace(tableSubstitute, t.Name),
+                              {| ctx with Table = t |}) ]
+        for (f, ctx) in fsAndCtxs do
+            let outFile = Path.Combine(outDir, f)
+            printfn "[DEBUG] Generating: %s" outFile
 
-            // Drop the SourceDir/ prefix
-            let f = f.Substring(this.SourceDir.Length + 1)
-            // Handle the special case where files should be enumerated per table
-            let tableSubstitute = "GENAPP__tables__"
-            let fsAndCtxs =
-                if not (f.Contains tableSubstitute) then [(f, {| ctx with Table = ctx.Tables.[0] |})]
-                else [ for t in ctx.Tables do
-                           yield (f.Replace(tableSubstitute, t.Name),
-                                  {| ctx with Table = t |}) ]
-            for (f, ctx) in fsAndCtxs do
-                let outFile = Path.Combine(this.OutDir, f)
-                printfn "[DEBUG] Generating: %s" outFile
+            // Create directory if not exists
+            (new FileInfo(outFile)).Directory.Create()
 
-                // Create directory if not exists
-                (new FileInfo(outFile)).Directory.Create()
-
-                File.WriteAllText(outFile, tpl.Render(ctx))
+            File.WriteAllText(outFile, tpl.Render(ctx))
 
 
-let Generate(projectDir: string, cfg: Config.ProjectConfig, ctx: Context) =
-    let engine = {
-        SourceDir = Path.Combine("templates", cfg.Template)
-        OutDir = Path.Combine(projectDir, cfg.OutDir)
-    }
-    engine.WriteProjectToDisk(ctx)
+let private generate(templateDir: string, projectDir: string, cfg: Config.ProjectConfig, ctx: Context) =
+    let sourceDir = Path.Combine(templateDir, cfg.Template)
+    let outDir = Path.Combine(projectDir, cfg.OutDir, cfg.Template)
+    writeProjectToDisk(sourceDir, outDir, ctx)
 
     printfn "[DEBUG] Running post install script: %s"
-        (Path.Combine(projectDir, cfg.OutDir, "scripts/post-generate.sh"))
+        (Path.Combine(projectDir, outDir, "scripts/post-generate.sh"))
     let processInfo = new ProcessStartInfo(
                           FileName = "bash",
                           Arguments = "scripts/post-generate.sh",
-                          WorkingDirectory = Path.Combine(projectDir, cfg.OutDir))
+                          WorkingDirectory = outDir)
     use p = Process.Start(processInfo)
     p.WaitForExit()
+
+
+let GenerateApi(projectDir: string, cfg: Config.ProjectConfig, ctx: Context) =
+    generate("templates/api", projectDir, cfg, ctx)
+
+
+let GenerateBrowser(projectDir: string, cfg: Config.ProjectConfig, ctx: Context) =
+    generate("templates/browser", projectDir, cfg, ctx)

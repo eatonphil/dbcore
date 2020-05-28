@@ -5,7 +5,7 @@ import (
 
 	"github.com/guregu/null"
 	"github.com/jmoiron/sqlx"
-	"github.com/Masterminds/squirrel"
+	"github.com/xwb1989/sqlparser"
 )
 
 type {{ table.name|string.capitalize }} struct {

@@ -1,5 +1,6 @@
 module Config
 
+open System.Collections.Generic
 open System.IO
 
 open YamlDotNet.Serialization
@@ -33,9 +34,9 @@ type ApiConfig() =
 
 
     override val Template = "go" with get, set
-
-    member val Repo = "" with get, set
     member val Address = "" with get, set
+    member val RouterPrefix = "" with get, set
+    member val Extra = new Dictionary<string, string>() with get, set
 
 
 type BrowserConfig() =

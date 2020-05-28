@@ -5,17 +5,17 @@ import (
 
 	"github.com/julienschmidt/httprouter"
 
-	"{{ api.repo }}/go/pkg/dao"
+	"{{ api.extra.repo }}/go/pkg/dao"
 )
 
 func (s Server) {{ table.name }}GetManyController(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	filter, pageInfo, err := getFilterAndPageInfo(r)
+	_, pageInfo, err := getFilterAndPageInfo(r)
 	if err != nil {
 		sendErrorResponse(w, err)
 		return
 	}
 
-	result, err := s.dao.{{ table.name|string.capitalize }}GetMany(filter, *pageInfo)
+	result, err := s.dao.{{ table.name|string.capitalize }}GetMany(nil, *pageInfo)
 	if err != nil {
 		sendErrorResponse(w, err)
 		return

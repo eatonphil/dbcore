@@ -21,7 +21,7 @@ let main (args: string []): int =
         Browser = config.Browser
         Tables = tables
     }
-    Template.Generate(projectDir, config.Api, ctx)
-    Template.Generate(projectDir, config.Browser, ctx)
+    Template.GenerateApi(projectDir, config.Api, ctx)
+    Template.GenerateBrowser(projectDir, config.Browser, ctx)
 
     0

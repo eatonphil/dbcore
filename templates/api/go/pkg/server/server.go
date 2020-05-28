@@ -11,7 +11,7 @@ import (
 	_ "github.com/lib/pq"
 	"github.com/sirupsen/logrus"
 
-	"{{api.repo}}/go/pkg/dao"
+	"{{api.extra.repo}}/go/pkg/dao"
 )
 
 type Server struct {
@@ -24,12 +24,12 @@ type Server struct {
 func (s Server) registerControllers() {
 	{{~ for table in tables ~}}
 	// Register {{table.name}} routes
-	s.router.GET("/{{table.name}}", s.{{table.name}}GetManyController)
-	s.router.POST("/{{table.name}}/new", s.{{table.name}}CreateController)
+	s.router.GET("/{{ api.routerPrefix }}{{ table.name }}", s.{{table.name}}GetManyController)
+	s.router.POST("/{{ api.routerPrefix }}{{ table.name }}/new", s.{{table.name}}CreateController)
 	{{~ if table.primary_key.is_some ~}}
-	s.router.GET("/{{table.name}}/:key", s.{{table.name}}GetController)
-	s.router.PUT("/{{table.name}}/:key", s.{{table.name}}UpdateController)
-	s.router.DELETE("/{{table.name}}/:key", s.{{table.name}}DeleteController)
+	s.router.GET("/{{ api.routerPrefix }}{{ table.name }}/:key", s.{{table.name}}GetController)
+	s.router.PUT("/{{ api.routerPrefix }}{{ table.name }}/:key", s.{{table.name}}UpdateController)
+	s.router.DELETE("/{{ api.routerPrefix }}{{ table.name }}/:key", s.{{table.name}}DeleteController)
 	{{~ end ~}}
 	{{ end }}
 }

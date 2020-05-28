@@ -48,13 +48,13 @@ let private writeProjectToDisk(sourceDir: string, outDir: string, ctx: Context) 
             File.WriteAllText(outFile, tpl.Render(ctx))
 
 
-let private generate(templateDir: string, projectDir: string, cfg: Config.ProjectConfig, ctx: Context) =
+let private generate(templateDir: string, projectDir: string, cfg: Config.IConfig, ctx: Context) =
     let sourceDir = Path.Combine(templateDir, cfg.Template)
-    let outDir = Path.Combine(projectDir, cfg.OutDir, cfg.Template)
+    let outDir = Path.Combine(projectDir, cfg.Template)
     writeProjectToDisk(sourceDir, outDir, ctx)
 
     printfn "[DEBUG] Running post install script: %s"
-        (Path.Combine(projectDir, outDir, "scripts/post-generate.sh"))
+        (Path.Combine(outDir, "scripts/post-generate.sh"))
     let processInfo = new ProcessStartInfo(
                           FileName = "bash",
                           Arguments = "scripts/post-generate.sh",
@@ -63,9 +63,9 @@ let private generate(templateDir: string, projectDir: string, cfg: Config.Projec
     p.WaitForExit()
 
 
-let GenerateApi(projectDir: string, cfg: Config.ProjectConfig, ctx: Context) =
+let GenerateApi(projectDir: string, cfg: Config.IConfig, ctx: Context) =
     generate("templates/api", projectDir, cfg, ctx)
 
 
-let GenerateBrowser(projectDir: string, cfg: Config.ProjectConfig, ctx: Context) =
+let GenerateBrowser(projectDir: string, cfg: Config.IConfig, ctx: Context) =
     generate("templates/browser", projectDir, cfg, ctx)

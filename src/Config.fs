@@ -18,45 +18,43 @@ type DatabaseConfig() =
     member val Parameters = "" with get, set
 
 
-[<AbstractClass>]
-type ProjectConfig() =
-    abstract OutDir : string with get, set
-    abstract Template : string with get, set
+type IConfig =
+    abstract member OutDir : string with get, set
+    abstract member Template : string with get, set
 
 
 type ApiConfig() =
-    inherit ProjectConfig()
+    interface IConfig with
+        member val OutDir = "api" with get, set
+        member val Template = "go" with get, set
 
-    let mutable outdir = ""
-    override this.OutDir
-        with get() = if outdir = "" then this.Template else ""
-        and set(value) = outdir <- value
-
-
-    override val Template = "go" with get, set
     member val Address = "" with get, set
     member val RouterPrefix = "" with get, set
     member val Extra = new Dictionary<string, string>() with get, set
 
 
 type BrowserConfig() =
-    inherit ProjectConfig()
-
-    let mutable outdir = ""
-    override this.OutDir
-        with get() = if outdir = "" then this.Template else ""
-        and set(value) = outdir <- value
-
-    override val Template = "react-ts" with get, set
+    interface IConfig with
+        member val OutDir = "browser" with get, set
+        member val Template = "react-ts" with get, set
 
     member val Address = "" with get, set
 
+
+type CustomConfig() =
+    interface IConfig with
+        member val OutDir = "" with get, set
+        member val Template = "" with get, set
+
+    // TODO: allow any nested structure, unsure how to type
+    member val Extra = new Dictionary<string, string>() with get, set
 
 type Config() =
     member val Database = DatabaseConfig() with get, set
     member val Api = ApiConfig() with get, set
     member val Browser = BrowserConfig() with get, set
     member val Project = "" with get, set
+    member val Custom : array<CustomConfig> = [| |] with get, set
 
 
 let GetConfig(f: string) : Config =

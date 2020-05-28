@@ -9,8 +9,6 @@ database:
 
 api:
   address: :9090
-  template: go
-  outDir: go
   routerPrefix: v1
   extra:
     repo: github.com/eatonphil/dbcore-todo

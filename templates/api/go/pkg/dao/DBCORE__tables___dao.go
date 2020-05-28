@@ -39,7 +39,6 @@ OFFSET
   %d
 LIMIT
   %d`, where.filter, p.Order, p.Offset, p.Limit)
-	fmt.Println(query)
 	rows, err := d.db.Queryx(query, where.args...)
 	if err != nil {
 		return nil, err

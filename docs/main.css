@@ -50,7 +50,7 @@ th, tr:not(:last-of-type) td {
 
 pre {
     background: white;
-    border: 1px solid #eee;
+    border: 1px solid #ccc;
     padding: 50px;
     overflow: auto;
     width: 800px;

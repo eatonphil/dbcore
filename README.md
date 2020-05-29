@@ -1,11 +1,11 @@
-# DBCore
+# DBCore (ALPHA)
 
 DBCore is a code generator build around database schemas and an API
 specification. Included with DBCore are templates for generating a Go
 REST API.
 
 The API specification supports basic CRUD operations with filtering,
-pagination, and sorting.
+pagination, sorting, and JWT-based username/password authentication.
 
 [See the docs site for more detail.](https://eatonphil.github.io/dbcore/)
 

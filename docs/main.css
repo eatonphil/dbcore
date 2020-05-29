@@ -4,6 +4,8 @@
 
 body {
     font-family: sans-serif;
+    font-size: 1.1rem;
+    line-height: 1.5rem;
 }
 
 section {
@@ -69,6 +71,10 @@ pre code {
     padding: initial;
 }
 
+.text-right {
+    text-align: right;
+}
+
 section.hero {
     padding: 100px 0;
     background: #e42352;
@@ -91,8 +97,7 @@ section.hero {
 }
 
 .hero subtitle {
-    font-size: x-large;
-    font-weight: bold;
+    
 }
 
 .hero ul {

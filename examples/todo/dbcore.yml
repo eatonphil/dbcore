@@ -9,6 +9,6 @@ database:
 api:
   routerPrefix: v1/
   auth:
-    enabled: false
+    enabled: true
   extra:
     repo: github.com/eatonphil/dbcore-todo

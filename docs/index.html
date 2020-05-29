@@ -2,8 +2,8 @@
 <html class="no-js" lang="">
   <head>
     <meta charset="utf-8">
-    <title>DBCore - Code generation powered by your database.</title>
-    <meta name="description" content="Code generation powered by your database.">
+    <title>DBCore - Code generation powered by your database. (ALPHA)</title>
+    <meta name="description" content="Code generation powered by your database. (ALPHA)">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <link rel="stylesheet" href="reset.css">
@@ -21,7 +21,7 @@
 	    <img src="logo.png">
             <h1>DBCore</h1>
 	  </div>
-	  <subtitle>Code generation powered by your database.</subtitle>
+	  <subtitle>Code generation powered by your database. (ALPHA)</subtitle>
         </header>
         <p>
         <ul class="checks">
@@ -65,9 +65,6 @@ database:
   username: $username
   password: $password
 
-  # Omit this in production
-  parameters: ?sslmode=disable
-
 api:
   template: go
   outDir: go
@@ -83,9 +80,22 @@ api:
     # Column for password field, bcrypt hash is stored
     password: password
 
-  address: :8080
   extra:
     repo: $your-repo</code></pre>
+	<p>
+	  The <code>dbcore.yml</code> file controls code
+	  generation. You'll also need an <code>app.yml</code> file
+	  for runtime behavior:
+	</p>
+	<pre></code>database:
+  dialect: postgres
+  dsn: postgres://$username:$password@$host/$database?sslmode=disable
+
+address: :9090
+
+session:
+  duration: 2hr
+  secret: my-secret-signing-key</code></pre>
 	<p>
 	  Clone the repo and run <code>dotnet run $path-to-your-project</code>
 	  within the repo root.
@@ -104,9 +114,24 @@ api:
 	</header>
 	<h2>Authentication</h2>
 	<p>
-	  Authentication is ena
-
+	  When authentication is enabled, make a
+	  JSON <code>POST</code> request with <code>{"username":
+	  "$your-username", "password": "$your-password"}</code>
+	  to <code>/$version/session/start</code> to generate a
+	  token. It is valid for 2 hours by default.
 	</p>
+	<p>
+	  Passwords are stored as BCrypt hashes.
+	</p>
+	<p>
+	  You can store this token in the <code>au</code> cookie or
+	  you can submit it as bearer token by setting
+	  the <code>Authorization</code> header to <code>BEARER
+	  $your-token</code>.
+	</p>
+	<h3>Example</h3>
+	<pre><code>$ curl -X POST -d '{"username": "alex", "password": "alex"}' localhost:9090/v1/session/start
+{"token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE1OTA3MjkyNjMsImlhdCI6MTU5MDcyMjA2MywibmJmIjoxNTkwNzIyMDYzLCJ1c2VybmFtZSI6InBoaWwifQ.4AAveeFRpXckn3cRFyCQew2V7jmcU4OOYH68wcv6afI"}</code></pre>
 
 	<h2>Get many rows from a table</h2>
 	<p>
@@ -157,7 +182,7 @@ api:
     {
       "id": 1,
       "username": "alex",
-      "password": "<REDACTED>",
+      "password": "&lt;REDACTED&gt;",
       "name": "Alex"
     },
   ]
@@ -167,12 +192,9 @@ api:
 	<p>
 	  Make a <code>POST</code> request to <code>/$version/$table/new</code>.
 	</p>
-	<h3>Body</h3>
-	<p>
-	</p>
 	<h3>Example</h3>
 	<pre><code>$ curl -X POST -d '{"username": "alex", "password": "alex", "name": "Alex"}' localhost:9090/v1/users/new
-{"id":1,"username":"alex","password":"<REDACTED>","name":"Alex"}</code></pre>
+{"id":1,"username":"alex","password":"&lt;REDACTED&gt;","name":"Alex"}</code></pre>
 
 	<h2>Get a row</h2>
 	<p>
@@ -183,7 +205,7 @@ api:
 	</p>
 	<h3>Example</h3>
 	<pre><code>$ curl localhost:9090/v1/users/1
-{"id":1,"username":"alex","password":"<REDACTED>","name":"Alex"}</code></pre>
+{"id":1,"username":"alex","password":"&lt;REDACTED&gt;","name":"Alex"}</code></pre>
 
 	<h2>Update a row</h2>
 	<p>
@@ -194,7 +216,7 @@ api:
 	</p>
 	<h3>Example</h3>
 	<pre><code>$ curl -X PUT -d '{"id": 1, "username": "alex", "password": "alex", "name": "Alex K"}' localhost:9090/v1/users/1
-{"id":1,"username":"alex","password":"<REDACTED>","name":"Alex K"}</code></pre>
+{"id":1,"username":"alex","password":"&lt;REDACTED&gt;","name":"Alex K"}</code></pre>
 
 	<h2>Delete a row</h2>
 	<p>

@@ -75,6 +75,14 @@ api:
   # e.g. "v1/", for URLs
   routerPrefix: router-prefix
 
+  auth:
+    enabled: true
+    table: users
+    # Column for username field
+    username: username
+    # Column for password field, bcrypt hash is stored
+    password: password
+
   address: :8080
   extra:
     repo: $your-repo</code></pre>
@@ -94,6 +102,12 @@ api:
 	<header>
           <h1>API Specification</h1>
 	</header>
+	<h2>Authentication</h2>
+	<p>
+	  Authentication is ena
+
+	</p>
+
 	<h2>Get many rows from a table</h2>
 	<p>
 	  Make a <code>GET</code> request to <code>/$version/$table</code>.
@@ -143,7 +157,7 @@ api:
     {
       "id": 1,
       "username": "alex",
-      "password": "alex",
+      "password": "<REDACTED>",
       "name": "Alex"
     },
   ]
@@ -158,7 +172,7 @@ api:
 	</p>
 	<h3>Example</h3>
 	<pre><code>$ curl -X POST -d '{"username": "alex", "password": "alex", "name": "Alex"}' localhost:9090/v1/users/new
-{"id":1,"username":"alex","password":"alex","name":"Alex"}</code></pre>
+{"id":1,"username":"alex","password":"<REDACTED>","name":"Alex"}</code></pre>
 
 	<h2>Get a row</h2>
 	<p>
@@ -169,7 +183,7 @@ api:
 	</p>
 	<h3>Example</h3>
 	<pre><code>$ curl localhost:9090/v1/users/1
-{"id":1,"username":"alex","password":"alex","name":"Alex"}</code></pre>
+{"id":1,"username":"alex","password":"<REDACTED>","name":"Alex"}</code></pre>
 
 	<h2>Update a row</h2>
 	<p>
@@ -180,7 +194,7 @@ api:
 	</p>
 	<h3>Example</h3>
 	<pre><code>$ curl -X PUT -d '{"id": 1, "username": "alex", "password": "alex", "name": "Alex K"}' localhost:9090/v1/users/1
-{"id":1,"username":"alex","password":"alex","name":"Alex K"}</code></pre>
+{"id":1,"username":"alex","password":"<REDACTED>","name":"Alex K"}</code></pre>
 
 	<h2>Delete a row</h2>
 	<p>

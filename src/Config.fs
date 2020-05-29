@@ -67,7 +67,6 @@ let GetConfig(f: string) : Config =
     let deserializer =
         (new DeserializerBuilder())
             .WithNamingConvention(CamelCaseNamingConvention.Instance)
-            .IgnoreUnmatchedProperties()
             .Build()
     let config = deserializer.Deserialize<Config>(stream)
 

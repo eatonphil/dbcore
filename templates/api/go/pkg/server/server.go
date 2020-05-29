@@ -27,18 +27,18 @@ type Server struct {
 func (s Server) registerControllers() {
 	{{~ for table in tables ~}}
 	// Register {{table.name}} routes
-	s.router.GET("/{{ api.routerPrefix }}{{ table.name }}", s.{{table.name}}GetManyController)
-	s.router.POST("/{{ api.routerPrefix }}{{ table.name }}/new", s.{{table.name}}CreateController)
+	s.router.GET("/{{ api.router_prefix }}{{ table.name }}", s.{{table.name}}GetManyController)
+	s.router.POST("/{{ api.router_prefix }}{{ table.name }}/new", s.{{table.name}}CreateController)
 	{{~ if table.primary_key.is_some ~}}
-	s.router.GET("/{{ api.routerPrefix }}{{ table.name }}/:key", s.{{table.name}}GetController)
-	s.router.PUT("/{{ api.routerPrefix }}{{ table.name }}/:key", s.{{table.name}}UpdateController)
-	s.router.DELETE("/{{ api.routerPrefix }}{{ table.name }}/:key", s.{{table.name}}DeleteController)
+	s.router.GET("/{{ api.router_prefix }}{{ table.name }}/:key", s.{{table.name}}GetController)
+	s.router.PUT("/{{ api.router_prefix }}{{ table.name }}/:key", s.{{table.name}}UpdateController)
+	s.router.DELETE("/{{ api.router_prefix }}{{ table.name }}/:key", s.{{table.name}}DeleteController)
 	{{~ end ~}}
 	{{ end }}
 
 	{{ if api.auth.enabled }}
 	// Register session route
-	s.router.POST("/{{ api.routerPrefix }}/session/start", s.SessionStartController)
+	s.router.POST("/{{ api.router_prefix }}session/start", s.SessionStartController)
 	{{ end }}
 }
 
@@ -98,6 +98,8 @@ func New(conf *Config) (*Server, error) {
 
 	router := httprouter.New()
 	logger := logrus.New()
+	// TODO: make this configurable
+	logger.SetLevel(logrus.DebugLevel)
 
 	return &Server{
 		dao: dao.New(db),

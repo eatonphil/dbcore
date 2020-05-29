@@ -7,8 +7,8 @@ database:
   password: todo
 
 api:
-  routerPrefix: v1
+  routerPrefix: v1/
   auth:
-    enabled: true
+    enabled: false
   extra:
     repo: github.com/eatonphil/dbcore-todo

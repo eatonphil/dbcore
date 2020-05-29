@@ -1,6 +1,6 @@
 database:
   dialect: postgres
-  dsn: postgres://todo:todo@localhost/todo
+  dsn: postgres://todo:todo@localhost/todo?sslmode=disable
 
 address: :9090
 

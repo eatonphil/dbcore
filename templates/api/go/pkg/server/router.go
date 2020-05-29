@@ -15,14 +15,18 @@ func (s Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	{{ if api.auth.enabled }}
-	cookie, err := r.Cookie("au")
-	if err != nil {
-		w.WriteHeader(http.StatusUnauthorized)
+	if r.URL.Path == "/{{ api.router_prefix }}session/start" {
+		s.router.ServeHTTP(w, r)
 		return
 	}
 
-	token := cookie.Value
+	cookie, err := r.Cookie("au")
+	if err != nil {
+		// Fall back to header check
+		cookie = &http.Cookie{}
+	}
 
+	token := cookie.Value
 	if token == "" {
 		authHeader := r.Header.Get("Authorization")
 		if len(authHeader) > len("bearer ") &&
@@ -49,18 +53,8 @@ func (s Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			return false
 		}
 
-		expInterface, ok := claims["exp"]
-		if !ok {
-			return false
-		}
-
-		expUnix, ok := expInterface.(int64)
-		if !ok {
-			return false
-		}
-
-		if time.Unix(expUnix, 0).Before(time.Now()) {
-			// Session has expired
+		if err := claims.Valid(); err != nil {
+			s.logger.Debugf("Invalid claims: %s", err)
 			return false
 		}
 
@@ -80,7 +74,7 @@ func (s Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			return false
 		}
 
-		pageInfo := dao.Pagination{Offset: 0, Limit: 1, Order: `"{{ api.auth.username }} DESC"`}
+		pageInfo := dao.Pagination{Offset: 0, Limit: 1, Order: `"{{ api.auth.username }}" DESC`}
 		result, err := s.dao.{{ api.auth.table|string.capitalize }}GetMany(filter, pageInfo)
 		if err != nil {
 			s.logger.Debugf("Error retrieving user: %s", err)
@@ -95,6 +89,9 @@ func (s Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}()
 	if !authorized {
 		w.WriteHeader(http.StatusUnauthorized)
+		sendResponse(w, struct{
+			Error string `json:"error"`
+		}{"Unauthorized"})
 		return
 	}
 	{{ end }}

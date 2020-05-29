@@ -72,7 +72,7 @@ func ParseFilter(filter string) (*Filter, error) {
 			}
 
 			f.args = append(f.args, fl)
-		} else if v.IsText() {
+		} else if v.IsText() || v.IsQuoted() {
 			f.args = append(f.args, s)
 		} else if v.IsNull() {
 			f.args = append(f.args, nil)

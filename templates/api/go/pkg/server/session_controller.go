@@ -25,14 +25,15 @@ func (s Server) SessionStartController(w http.ResponseWriter, r *http.Request, _
 		return
 	}
 
-	filter, err := dao.ParseFilter(fmt.Sprintf("{{ api.auth.username }} = '%s'", userPass.Username))
+	q := fmt.Sprintf("{{ api.auth.username }} = '%s'", userPass.Username)
+	filter, err := dao.ParseFilter(q)
 	if err != nil {
 		s.logger.Debugf("Error while parsing {{ api.auth.username }}: %s", err)
 		sendValidationErrorResponse(w, `Expected valid "username"`)
 		return
 	}
 
-	pageInfo := dao.Pagination{Offset: 0, Limit: 1, Order: `"{{ api.auth.username }} DESC"`}
+	pageInfo := dao.Pagination{Offset: 0, Limit: 1, Order: `"{{ api.auth.username }}" DESC`}
 	result, err := s.dao.{{ api.auth.table|string.capitalize }}GetMany(filter, pageInfo)
 	if err != nil {
 		sendErrorResponse(w, err)
@@ -54,10 +55,14 @@ func (s Server) SessionStartController(w http.ResponseWriter, r *http.Request, _
 	unsignedToken := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"username": user.C_{{ api.auth.username }},
 		"exp": time.Now().Add(s.sessionDuration).Unix(),
+		"nbf": time.Now().Unix(),
+		"iat": time.Now().Unix(),
 	})
-	token, err := unsignedToken.SignedString(s.secret)
+	fmt.Println(time.Now().Add(s.sessionDuration).Unix())
+	token, err := unsignedToken.SignedString([]byte(s.secret))
 	if err != nil {
-		sendErrorResponse(w, err)
+		s.logger.Debugf("Error signing string: %s", err)
+		sendErrorResponse(w, fmt.Errorf("Internal server error"))
 		return
 	}
 

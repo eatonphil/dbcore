@@ -128,7 +128,12 @@ section.hero {
     }
 }
 
-@media (max-width: 400px) {
+@media (max-width: 411px) {
+    .hero h1 {
+	font-size: 75px;
+	margin: 15px 0;
+    }
+
     .hero img {
 	display: none;
     }

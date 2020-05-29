@@ -21,7 +21,7 @@ type Server struct {
 	logger logrus.FieldLogger
 	address string
 	secret string
-	sessionDuration string
+	sessionDuration time.Duration
 }
 
 func (s Server) registerControllers() {
@@ -62,7 +62,7 @@ func (s Server) Start() {
 	s.registerControllers()
 
 	srv := &http.Server{
-		Handler: newMiddleware(s.logger, s.router, s.secret, s.sessionDuration),
+		Handler: s,
 		Addr:    s.address,
 		WriteTimeout: 15 * time.Second,
 		ReadTimeout:  15 * time.Second,
@@ -89,7 +89,7 @@ func New(conf *Config) (*Server, error) {
 		return nil, err
 	}
 
-	secret := conf.GetString("sessions.secret")
+	secret := conf.GetString("session.secret")
 	{{ if api.auth.enabled }}
 	if secret == "" {
 		return nil, fmt.Errorf(`Configuration value "secret" must be specified`)
@@ -108,6 +108,6 @@ func New(conf *Config) (*Server, error) {
 		}),
 		address: conf.GetString("address", ":9090"),
 		secret: secret,
-		sessionDuration: conf.GetDuration("sessions.duration", time.Hour * 2),
+		sessionDuration: conf.GetDuration("session.duration", time.Hour * 2),
 	}, nil
 }

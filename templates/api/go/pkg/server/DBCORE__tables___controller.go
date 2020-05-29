@@ -44,7 +44,7 @@ func (s Server) {{ table.name }}CreateController(w http.ResponseWriter, r *http.
 
 	{{ if api.auth.enabled && table.name == api.auth.table }}
 	hash, err := bcrypt.GenerateFromPassword(
-		body.C_{{ api.auth.password }}, bcrypt.DefaultCost)
+		[]byte(body.C_{{ api.auth.password }}), bcrypt.DefaultCost)
 	body.C_{{ api.auth.password }} = string(hash)
 	{{ end }}
 

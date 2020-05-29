@@ -24,8 +24,9 @@ func (s Server) {{ table.name }}GetManyController(w http.ResponseWriter, r *http
 		return
 	}
 
-	{{ if api.auth.enabled && table.name == api.auth.table }}
+	{{ if table.name == api.auth.table }}
 	for i, _ := range result.Data {
+		// TODO: make sure this column actually exists
 		result.Data[i].C_{{ api.auth.password }} = "<REDACTED>"
 	}
 	{{ end }}
@@ -54,7 +55,8 @@ func (s Server) {{ table.name }}CreateController(w http.ResponseWriter, r *http.
 		return
 	}
 
-	{{ if api.auth.enabled && table.name == api.auth.table }}
+	{{ if table.name == api.auth.table }}
+	// TODO: make sure this column actually exists
 	body.C_{{ api.auth.password }} = "<REDACTED>"
 	{{ end }}
 
@@ -69,7 +71,8 @@ func (s Server) {{ table.name }}GetController(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	{{ if api.auth.enabled && table.name == api.auth.table }}
+	{{ if table.name == api.auth.table }}
+	// TODO: make sure this column actually exists
 	result.C_{{ api.auth.password }} = "<REDACTED>"
 	{{ end }}
 
@@ -101,7 +104,8 @@ func (s Server) {{ table.name }}UpdateController(w http.ResponseWriter, r *http.
 		return
 	}
 
-	{{ if api.auth.enabled && table.name == api.auth.table }}
+	{{ if table.name == api.auth.table }}
+	// TODO: make sure this column actually exists
 	result.C_{{ api.auth.password }} = "<REDACTED>"
 	{{ end }}
 

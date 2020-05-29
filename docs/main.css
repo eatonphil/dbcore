@@ -128,3 +128,8 @@ section.hero {
     }
 }
 
+@media (max-width: 400px) {
+    .hero img {
+	display: none;
+    }
+}

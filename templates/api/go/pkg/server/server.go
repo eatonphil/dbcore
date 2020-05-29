@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"time"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/julienschmidt/httprouter"
@@ -19,6 +20,8 @@ type Server struct {
 	router *httprouter.Router
 	logger logrus.FieldLogger
 	address string
+	secret string
+	sessionDuration string
 }
 
 func (s Server) registerControllers() {
@@ -31,6 +34,11 @@ func (s Server) registerControllers() {
 	s.router.PUT("/{{ api.routerPrefix }}{{ table.name }}/:key", s.{{table.name}}UpdateController)
 	s.router.DELETE("/{{ api.routerPrefix }}{{ table.name }}/:key", s.{{table.name}}DeleteController)
 	{{~ end ~}}
+	{{ end }}
+
+	{{ if api.auth.enabled }}
+	// Register session route
+	s.router.POST("/{{ api.routerPrefix }}/session/start", s.SessionStartController)
 	{{ end }}
 }
 
@@ -54,7 +62,7 @@ func (s Server) Start() {
 	s.registerControllers()
 
 	srv := &http.Server{
-		Handler: loggerRouter{s.logger, s.router},
+		Handler: newMiddleware(s.logger, s.router, s.secret, s.sessionDuration),
 		Addr:    s.address,
 		WriteTimeout: 15 * time.Second,
 		ReadTimeout:  15 * time.Second,
@@ -75,18 +83,18 @@ func (s Server) Start() {
 
 func New(conf *Config) (*Server, error) {
 	dialect := conf.GetString("database.dialect")
-	dsn := fmt.Sprintf("%s://%s:%s@%s:%s/%s%s",
-		dialect,
-		conf.GetString("database.username"),
-		conf.GetString("database.password"),
-		conf.GetString("database.host", "localhost"),
-		conf.GetString("database.port", "5432"),
-		conf.GetString("database.database"),
-		conf.GetString("database.parameters"))
+	dsn := conf.GetString("database.dsn")
 	db, err := sqlx.Connect(dialect, dsn)
 	if err != nil {
 		return nil, err
 	}
+
+	secret := conf.GetString("sessions.secret")
+	{{ if api.auth.enabled }}
+	if secret == "" {
+		return nil, fmt.Errorf(`Configuration value "secret" must be specified`)
+	}
+	{{ end }}
 
 	router := httprouter.New()
 	logger := logrus.New()
@@ -98,6 +106,8 @@ func New(conf *Config) (*Server, error) {
 			"struct": "Server",
 			"pkg": "server",
 		}),
-		address: conf.GetString("api.address", ":9090"),
+		address: conf.GetString("address", ":9090"),
+		secret: secret,
+		sessionDuration: conf.GetDuration("sessions.duration", time.Hour * 2),
 	}, nil
 }

@@ -1,0 +1,8 @@
+database:
+  dialect: postgres
+  dsn: postgres://todo:todo@localhost/todo
+
+address: :9090
+
+session:
+  secret: TODO

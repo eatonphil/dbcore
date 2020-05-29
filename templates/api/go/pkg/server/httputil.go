@@ -11,7 +11,6 @@ import (
 )
 
 func sendValidationErrorResponse(w http.ResponseWriter, msg string) {
-	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusBadRequest)
 	json.NewEncoder(w).Encode(struct{
 		Error string `json:"error"`
@@ -21,7 +20,6 @@ func sendValidationErrorResponse(w http.ResponseWriter, msg string) {
 }
 
 func sendErrorResponse(w http.ResponseWriter, err error) {
-	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusInternalServerError)
 	json.NewEncoder(w).Encode(struct{
 		Error string `json:"error"`
@@ -31,7 +29,6 @@ func sendErrorResponse(w http.ResponseWriter, err error) {
 }
 
 func sendResponse(w http.ResponseWriter, obj interface{}) {
-	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(obj)
 }
 

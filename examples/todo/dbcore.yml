@@ -5,13 +5,10 @@ database:
   database: todo
   username: todo
   password: todo
-  parameters: ?sslmode=disable
 
 api:
-  address: :9090
   routerPrefix: v1
+  auth:
+    enabled: true
   extra:
     repo: github.com/eatonphil/dbcore-todo
-
-browser:
-  address: :9091

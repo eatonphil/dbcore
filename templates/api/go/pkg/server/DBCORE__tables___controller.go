@@ -2,6 +2,9 @@ package server
 
 import (
 	"net/http"
+	"time"
+
+	"golang.org/x/crypto/bcrypt"
 
 	"github.com/julienschmidt/httprouter"
 
@@ -21,6 +24,12 @@ func (s Server) {{ table.name }}GetManyController(w http.ResponseWriter, r *http
 		return
 	}
 
+	{{ if api.auth.enabled && table.name == api.auth.table }}
+	for i, _ := range result.Data {
+		result.Data[i].C_{{ api.auth.password }} = "<REDACTED>"
+	}
+	{{ end }}
+
 	sendResponse(w, result)
 }
 
@@ -33,22 +42,36 @@ func (s Server) {{ table.name }}CreateController(w http.ResponseWriter, r *http.
 		return
 	}
 
+	{{ if api.auth.enabled && table.name == api.auth.table }}
+	hash, err := bcrypt.GenerateFromPassword(
+		body.C_{{ api.auth.password }}, bcrypt.DefaultCost)
+	body.C_{{ api.auth.password }} = string(hash)
+	{{ end }}
+
 	err = s.dao.{{ table.name|string.capitalize }}Insert(&body)
 	if err != nil {
 		sendErrorResponse(w, err)
 		return
 	}
 
+	{{ if api.auth.enabled && table.name == api.auth.table }}
+	body.C_{{ api.auth.password }} = "<REDACTED>"
+	{{ end }}
+
 	sendResponse(w, body)
 }
 
-{{ if table.primary_key.is_some }}
+{{ if table.primary_key.enabled }}
 func (s Server) {{ table.name }}GetController(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	result, err := s.dao.{{ table.name|string.capitalize }}Get(ps.ByName("key"))
 	if err != nil {
 		sendErrorResponse(w, err)
 		return
 	}
+
+	{{ if api.auth.enabled && table.name == api.auth.table }}
+	result.C_{{ api.auth.password }} = "<REDACTED>"
+	{{ end }}
 
 	sendResponse(w, result)
 }
@@ -62,11 +85,25 @@ func (s Server) {{ table.name }}UpdateController(w http.ResponseWriter, r *http.
 		return
 	}
 
-	result, err := s.dao.{{ table.name|string.capitalize }}Update(ps.ByName("key"), body)
+	result, err := s.dao.{{ table.name|string.capitalize }}Get(ps.ByName("key"))
 	if err != nil {
 		sendErrorResponse(w, err)
 		return
 	}
+
+	{{ if api.auth.enabled && table.name == api.auth.table }}
+	body.C_{{ api.auth.password }} = result.C_{{ api.auth.password }}
+	{{ end }}
+
+	result, err = s.dao.{{ table.name|string.capitalize }}Update(ps.ByName("key"), body)
+	if err != nil {
+		sendErrorResponse(w, err)
+		return
+	}
+
+	{{ if api.auth.enabled && table.name == api.auth.table }}
+	result.C_{{ api.auth.password }} = "<REDACTED>"
+	{{ end }}
 
 	sendResponse(w, result)
 }

@@ -7,8 +7,13 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="src/*.fs" />
-    <Compile Include="Program.fs" />
+    <Compile Include="src/Config.fs" />
+    <Compile Include="src/Database/Database.fs" />
+    <Compile Include="src/Database/Postgres.fs" />
+    <Compile Include="src/Database/MySQL.fs" />
+    <Compile Include="src/Database/Reader.fs" />
+    <Compile Include="src/Template.fs" />
+    <Compile Include="src/Program.fs" />
   </ItemGroup>
 
   <ItemGroup>

@@ -1,7 +1,5 @@
 ﻿open System.IO
 
-open Database
-
 
 [<EntryPoint>]
 let main (args: string []): int =
@@ -10,18 +8,18 @@ let main (args: string []): int =
                          else failwith "Expected project directory"
 
     // TODO: validate file
-    let config = Config.GetConfig(Path.Combine(projectDir, "dbcore.yml"))
+    let cfg = Config.GetConfig(Path.Combine(projectDir, "dbcore.yml"))
 
-    let db = Database.MakeDatabaseReader(config.Database)
+    let db = Database.Reader(cfg.Database)
     let tables = db.GetTables()
 
     let ctx: Template.Context = {
-        Project = config.Project
-        Api = config.Api
-        Browser = config.Browser
+        Project = cfg.Project
+        Api = cfg.Api
+        Browser = cfg.Browser
         Tables = tables
     }
-    Template.GenerateApi(projectDir, config.Api, ctx)
-    Template.GenerateBrowser(projectDir, config.Browser, ctx)
+    Template.GenerateApi(projectDir, cfg.Api, ctx)
+    Template.GenerateBrowser(projectDir, cfg.Browser, ctx)
 
     0

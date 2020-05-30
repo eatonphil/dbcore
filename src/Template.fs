@@ -43,7 +43,7 @@ let private writeProjectToDisk(sourceDir: string, outDir: string, ctx: Context) 
             printfn "[DEBUG] Generating: %s" outFile
 
             // Create directory if not exists
-            (new FileInfo(outFile)).Directory.Create()
+            FileInfo(outFile).Directory.Create()
 
             File.WriteAllText(outFile, tpl.Render(ctx))
 

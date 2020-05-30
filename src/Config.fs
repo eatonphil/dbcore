@@ -33,9 +33,9 @@ type ApiConfig() =
         member val OutDir = "api" with get, set
         member val Template = "go" with get, set
 
-    member val Auth = new ApiAuthConfig() with get, set
+    member val Auth = ApiAuthConfig() with get, set
     member val RouterPrefix = "" with get, set
-    member val Extra = new Dictionary<string, string>() with get, set
+    member val Extra = Dictionary<string, string>() with get, set
 
 
 type BrowserConfig() =
@@ -50,7 +50,7 @@ type CustomConfig() =
         member val Template = "" with get, set
 
     // TODO: allow any nested structure, unsure how to type
-    member val Extra = new Dictionary<string, string>() with get, set
+    member val Extra = Dictionary<string, string>() with get, set
 
 type Config() =
     member val Project = "" with get, set
@@ -65,7 +65,7 @@ let GetConfig(f: string) : Config =
     use file = new FileStream(f, FileMode.Open, FileAccess.Read)
     use stream = new StreamReader(file)
     let deserializer =
-        (new DeserializerBuilder())
+        (DeserializerBuilder())
             .WithNamingConvention(CamelCaseNamingConvention.Instance)
             .Build()
     let config = deserializer.Deserialize<Config>(stream)

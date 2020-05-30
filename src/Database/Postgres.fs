@@ -1,48 +1,20 @@
-module Database
+namespace Database
 
 open Npgsql
 
 
-type Column =
-    {
-        Name: string
-        Type: string
-        GoType: string
-        AutoIncrement: bool
-    }
-
-
-type Constraint =
-    {
-        Column: string
-        ForeignTable: string
-        ForeignColumn: string
-    }
-
-
-type Table =
-    {
-        Name: string
-        Columns: Column[]
-        ForeignKeys: Constraint[]
-        PrimaryKey: Option<Constraint>
-    }
-
-
 [<NoComparison>]
-type DatabaseReader =
-    {
-        Cfg: Config.DatabaseConfig
-    }
+type PostgresReader(cfg0: Config.DatabaseConfig) =
+    let cfg = cfg0
 
     member private this.GetConn() : NpgsqlConnection =
         let dsn =
             sprintf "Host=%s;Port=%s;Database=%s;Username=%s;Password=%s;"
-                this.Cfg.Host
-                this.Cfg.Port
-                this.Cfg.Database
-                this.Cfg.Username
-                this.Cfg.Password
+                cfg.Host
+                cfg.Port
+                cfg.Database
+                cfg.Username
+                cfg.Password
         let conn = new NpgsqlConnection(dsn)
         conn.Open()
         conn
@@ -130,9 +102,9 @@ type DatabaseReader =
             PrimaryKey = primaryKey
         }
 
-    member this.GetTables () : Table[] =
+    member this.GetTables() : Table[] =
         use conn = this.GetConn()
-
+    
         // Fetch names first so cmd can be closed
         let tableNames =
             let query =
@@ -145,9 +117,5 @@ type DatabaseReader =
             use cmd = new NpgsqlCommand(query, conn)
             use dr = cmd.ExecuteReader()
             [| while dr.Read() do yield dr.GetString 0 |]
-
+    
         [| for name in tableNames do yield this.GetTable(conn, name) |]
-
-
-let MakeDatabaseReader (cfg: Config.DatabaseConfig) : DatabaseReader =
-    { Cfg = cfg }

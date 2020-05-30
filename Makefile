@@ -1,11 +1,13 @@
-.PHONY: clean test-todo
+.PHONY: build clean
 
-build: ./bin/Debug/netcoreapp3.0/dbcore
-	dotnet build
+build:
+	docker run \
+		-v $(shell pwd):/build \
+		-w /build \
+		-u $(shell id -u ${USER}):$(shell id -g ${USER}) \
+		-e DOTNET_CLI_TELEMETRY_OPTOUT=1 \
+		-e DOTNET_CLI_HOME=/tmp/.dotnet \
+		mcr.microsoft.com/dotnet/sdk:5.0 dotnet publish -c release
 
-clean:
-	dotnet clean
-
-test-todo:
-	dotnet run ./examples/todo
-	cd ./examples/todo/go && make && ./main
+install:
+	ln -s ./bin/release/netcoreapp3.0/linux-x64/publish/dbcore /usr/local/bin

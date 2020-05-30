@@ -4,6 +4,8 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp3.0</TargetFramework>
     <OtherFlags>$(OtherFlags) --warn:5</OtherFlags>
+    <RuntimeIdentifier>linux-x64</RuntimeIdentifier>
+    <PublishSingleFile>true</PublishSingleFile>
   </PropertyGroup>
 
   <ItemGroup>
@@ -14,6 +16,10 @@
     <Compile Include="src/Database/Reader.fs" />
     <Compile Include="src/Template.fs" />
     <Compile Include="src/Program.fs" />
+    <Content Include="templates/**">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <CopyToPublishDirectory>Always</CopyToPublishDirectory>
+    </Content>
   </ItemGroup>
 
   <ItemGroup>

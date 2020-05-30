@@ -100,12 +100,13 @@ session:
   duration: 2hr
   secret: my-secret-signing-key</code></pre>
 	<p>
-	  Clone the repo and run <code>dotnet run $path-to-your-project</code>
-	  within the repo root.
+	  Clone the repo and run <code>make && make install</code>
+	  within the repo root. You will need Docker, only.
 	</p>
 	<p>
-	  Then go to your project directory and run <code>go run cmd/main.go</code>
-	  to start the server.
+	  Then go to your project directory and run
+	  <code>dbcore</code> to generate the project. Finally
+	  run <code>go run cmd/main.go</code> to start the server.
 	</p>
       </div>
     </section>

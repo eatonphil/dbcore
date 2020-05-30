@@ -49,7 +49,9 @@ let private writeProjectToDisk(sourceDir: string, outDir: string, ctx: Context) 
 
 
 let private generate(templateDir: string, projectDir: string, cfg: Config.IConfig, ctx: Context) =
-    let sourceDir = Path.Combine(templateDir, cfg.Template)
+    // Required for distribution to get right base path (especially within single file executable)
+    let baseDir = System.AppContext.BaseDirectory
+    let sourceDir = Path.Combine(baseDir, templateDir, cfg.Template)
     let outDir = Path.Combine(projectDir, cfg.Template)
     writeProjectToDisk(sourceDir, outDir, ctx)
 

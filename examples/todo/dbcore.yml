@@ -2,7 +2,7 @@ project: dbcore-todo
 
 database:
   # Switch this to 'mysql' for mysql
-  dialect: postgres
+  dialect: mysql
   database: todo
   username: todo
   password: todo

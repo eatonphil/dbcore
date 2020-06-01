@@ -19,6 +19,7 @@ let rec private getFiles(dir: string) : seq<string> =
 type Context =
     {
         Project: string
+        Database: {| Dialect: string |}
         Tables: Database.Table[]
         Api: Config.ApiConfig
         Browser: Config.BrowserConfig

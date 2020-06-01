@@ -49,8 +49,6 @@ func ParseFilter(filter string) (*Filter, error) {
 	var invalidValue error
 	var f Filter
 	f.filter = "WHERE " + re.ReplaceAllStringFunc(exp, func (match string) string {
-		nth, _ := strconv.ParseInt(re.FindStringSubmatch(exp)[1], 10, 64)
-
 		// This library has no sane way to produce a Go value
 		// from a parsed bind variable.
 		match = match[1:] // Drop the preceeding colon
@@ -80,7 +78,12 @@ func ParseFilter(filter string) (*Filter, error) {
 			invalidValue = fmt.Errorf(`Unsupported value: "%s"`, s)
 		}
 
+		{{ if database.dialect == "postgres" }}
+		nth, _ := strconv.ParseInt(re.FindStringSubmatch(exp)[1], 10, 64)
 		return fmt.Sprintf("$%d", nth - 1)
+		{{ else if database.dialect == "mysql" }}
+		return "?"
+		{{ end }}
 	})
 
 	if invalidValue != nil {

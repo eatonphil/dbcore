@@ -1,6 +1,6 @@
 database:
   dialect: mysql
-  dsn: mysql://todo:todo@localhost/todo?sslmode=disable
+  dsn: root@/todo?sql_mode=ANSI
 
 address: :9090
 

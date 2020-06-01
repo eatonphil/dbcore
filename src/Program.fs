@@ -15,6 +15,7 @@ let main (args: string []): int =
 
     let ctx: Template.Context = {
         Project = cfg.Project
+        Database = {| Dialect = cfg.Database.Dialect |}
         Api = cfg.Api
         Browser = cfg.Browser
         Tables = tables

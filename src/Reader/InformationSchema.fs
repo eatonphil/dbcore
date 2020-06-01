@@ -39,19 +39,34 @@ type InformationSchema(cfg0: Config.DatabaseConfig) =
 
     let getConstraints(conn: IDbConnection, table: string, typ: string) : Constraint[] =
         let query =
-            "SELECT
-                 kcu.column_name,
-                 ccu.table_name,
-                 ccu.column_name
-             FROM
-                 information_schema.table_constraints AS tc
-                 JOIN information_schema.key_column_usage AS kcu
-                   ON tc.constraint_name = kcu.constraint_name
-                   AND tc.table_schema = kcu.table_schema
-                 JOIN information_schema.constraint_column_usage AS ccu
-                   ON ccu.constraint_name = tc.constraint_name
-                   AND ccu.table_schema = tc.table_schema
-             WHERE tc.constraint_type=@type AND tc.table_name=@name"
+            match cfg.Dialect with
+                | "postgres" ->
+                    "SELECT
+                         kcu.column_name,
+                         ccu.table_name,
+                         ccu.column_name
+                     FROM
+                         information_schema.table_constraints AS tc
+                         JOIN information_schema.key_column_usage AS kcu
+                             ON tc.constraint_name = kcu.constraint_name
+                             AND tc.table_schema = kcu.table_schema
+                         JOIN information_schema.constraint_column_usage AS ccu
+                             ON ccu.constraint_name = tc.constraint_name
+                             AND ccu.table_schema = tc.table_schema
+                     WHERE tc.constraint_type=@type AND tc.table_name=@name"
+                | "mysql" ->
+                    "SELECT
+                         column_name,
+                         COALESCE(referenced_table_name, ''),
+                         COALESCE(referenced_column_name, '')
+                     FROM
+                         information_schema.table_constraints tc
+                         JOIN information_schema.key_column_usage kcu
+                             ON kcu.table_schema = tc.table_schema
+                             AND kcu.table_name = tc.table_name
+                             AND kcu.constraint_name = tc.constraint_name
+                     WHERE tc.constraint_type=@type AND tc.table_name=@name"
+                 | d -> failwith "Unknown dialect: " + d
         use cmd = conn.CreateCommand()
         cmd.CommandText <- query
 
@@ -62,9 +77,9 @@ type InformationSchema(cfg0: Config.DatabaseConfig) =
         [|
             while dr.Read() do
                 yield {
-                    Column = dr.GetString 0
-                    ForeignTable = dr.GetString 1
-                    ForeignColumn = dr.GetString 2
+                    Column = dr.GetString(0)
+                    ForeignTable = dr.GetString(1)
+                    ForeignColumn = dr.GetString(2)
                 }
         |]
 

@@ -25,8 +25,8 @@
 	  </div>
 	  <h2>Code generation powered by your database.</h2>
         </header>
-        <p>
         <ul class="checks">
+	  <li>Reads from PostgreSQL or MySQL</li>
           <li>
 	    Generate standardized REST APIs with:
 	    <ul class="checks">
@@ -56,12 +56,13 @@
 	</p>
         <pre><code>project: $project-name
 database:
+  # Or 'mysql'
   dialect: postgres
 
   # Omit if localhost
   host: $host-or-ip
 
-  # Omit if 5432
+  # Omit if 5432 for postgres or 3306 for mysql
   port: $port
 
   database: $database-name
@@ -75,7 +76,8 @@ api:
   # e.g. "v1/", for URLs
   routerPrefix: router-prefix
 
-  auth:
+auth:
+    # Disabled by default
     enabled: true
     table: users
     # Column for username field
@@ -91,8 +93,10 @@ api:
 	  for runtime behavior:
 	</p>
 	<pre></code>database:
+  # Or use 'mysql'
   dialect: postgres
-  dsn: postgres://$username:$password@$host/$database?sslmode=disable
+  # Or use '$username:$password@tcp($host:$port)/$database?sql_mode=ANSI', sql_mode=ANSI is required
+  dsn: postgres://$username:$password@$host:$port/$database?sslmode=disable
 
 address: :9090
 

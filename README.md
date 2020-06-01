@@ -41,15 +41,15 @@ $ curl 'localhost:9090/users?limit=25&offset=0&sortColumn=id&sortOrder=desc' | j
 ## Dependencies
 
 * Go
-* PostgreSQL
+* PostgreSQL or MySQL
 * .NET Core
 
 ## Restrictions
 
-There are a bunch of restrictions! Here are a few known ones. You will discover more.
+There are a bunch of restrictions! Here are a few known ones. You will
+discover more and you may fix them!
 
-* Only PostgreSQL
+* Only PostgreSQL and MySQL
 * Only tables supported (i.e. no views)
-* Only tables within the `public` schema supported
 * Only single-column foreign keys supported
 * Only Go API templates provided

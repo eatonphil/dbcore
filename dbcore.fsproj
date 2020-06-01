@@ -10,10 +10,9 @@
 
   <ItemGroup>
     <Compile Include="src/Config.fs" />
-    <Compile Include="src/Database/Database.fs" />
-    <Compile Include="src/Database/Postgres.fs" />
-    <Compile Include="src/Database/MySQL.fs" />
-    <Compile Include="src/Database/Reader.fs" />
+    <Compile Include="src/Database.fs" />
+    <Compile Include="src/Reader/InformationSchema.fs" />
+    <Compile Include="src/Reader/Reader.fs" />
     <Compile Include="src/Template.fs" />
     <Compile Include="src/Program.fs" />
     <Content Include="templates/**">
@@ -23,6 +22,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="MysqlConnector" Version="0.67.0" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="3.1.3" />
     <PackageReference Include="Scriban" Version="2.1.2" />
     <PackageReference Include="YamlDotNet" Version="8.1.1" />

@@ -1,13 +1,25 @@
-namespace Database
+namespace Reader
+
+open System.Data
 
 open Npgsql
+open MySql.Data.MySqlClient
+
+open Database
 
 
+// This is for SQL implementations that follow the ANSI standard of
+// using information_schema tables to store database metadata.
 [<NoComparison>]
-type PostgresReader(cfg0: Config.DatabaseConfig) =
+type InformationSchema(cfg0: Config.DatabaseConfig) =
     let cfg = cfg0
+    let connFactory =
+        match cfg.Dialect with
+            | "mysql" -> fun (dsn) -> new MySqlConnection(dsn) :> IDbConnection
+            | "postgres" -> fun (dsn) -> new NpgsqlConnection(dsn) :> IDbConnection
+            | d -> failwith ("Unsupported SQL dialect: " + d)
 
-    member private this.GetConn() : NpgsqlConnection =
+    let getConn() : IDbConnection =
         let dsn =
             sprintf "Host=%s;Port=%s;Database=%s;Username=%s;Password=%s;"
                 cfg.Host
@@ -15,11 +27,17 @@ type PostgresReader(cfg0: Config.DatabaseConfig) =
                 cfg.Database
                 cfg.Username
                 cfg.Password
-        let conn = new NpgsqlConnection(dsn)
+        let conn = connFactory(dsn)
         conn.Open()
         conn
 
-    member private this.GetConstraints(conn: NpgsqlConnection, table: string, typ: string) : Constraint[] =
+    let addStringParameter(cmd: IDbCommand, name: string, value: string) : unit =
+        let p = cmd.CreateParameter()
+        p.ParameterName <- name
+        p.Value <- value
+        cmd.Parameters.Add(p) |> ignore
+
+    let getConstraints(conn: IDbConnection, table: string, typ: string) : Constraint[] =
         let query =
             "SELECT
                  kcu.column_name,
@@ -34,9 +52,11 @@ type PostgresReader(cfg0: Config.DatabaseConfig) =
                    ON ccu.constraint_name = tc.constraint_name
                    AND ccu.table_schema = tc.table_schema
              WHERE tc.constraint_type=@type AND tc.table_name=@name"
-        use cmd = new NpgsqlCommand(query, conn)
-        cmd.Parameters.AddWithValue("name", table) |> ignore
-        cmd.Parameters.AddWithValue("type", typ) |> ignore
+        use cmd = conn.CreateCommand()
+        cmd.CommandText <- query
+
+        addStringParameter(cmd, "name", table)
+        addStringParameter(cmd, "type", typ)
         cmd.Prepare()
         use dr = cmd.ExecuteReader()
         [|
@@ -48,7 +68,7 @@ type PostgresReader(cfg0: Config.DatabaseConfig) =
                 }
         |]
 
-    member private this.SqlToGoType(typ: string, nullable: bool) : string =
+    let dbToGoType(typ: string, nullable: bool) : string =
         match typ with
         | "int" -> if nullable then "*int32" else "int32"
         | "bigint" -> if nullable then "null.Int" else "int64"
@@ -57,7 +77,7 @@ type PostgresReader(cfg0: Config.DatabaseConfig) =
         | "timestamp" -> if nullable then "null.Time" else "time.Time"
         | _ -> failwith ("Unsupported PostgreSQL type" + typ)
 
-    member private this.GetTable(conn: NpgsqlConnection, name: string) : Table =
+    let getTable(conn: IDbConnection, name: string) : Table =
         let columns =
             let query =
                 "SELECT
@@ -68,18 +88,20 @@ type PostgresReader(cfg0: Config.DatabaseConfig) =
                  FROM
                      information_schema.columns
                  WHERE
-                     table_schema='public' AND table_name=@name"
-            use cmd = new NpgsqlCommand(query, conn)
-            cmd.Parameters.AddWithValue("name", name) |> ignore
+                     table_schema=@schema AND table_name=@name"
+            use cmd = conn.CreateCommand()
+            cmd.CommandText <- query
+            addStringParameter(cmd, "name", name)
+            addStringParameter(cmd, "schema", cfg.Schema)
             cmd.Prepare()
             use dr = cmd.ExecuteReader()
             [|
                 while dr.Read() do
                     yield {
-                        Name = dr.GetString 0
-                        Type = dr.GetString 1
-                        GoType = this.SqlToGoType (dr.GetString 1, dr.GetBoolean 2)
-                        AutoIncrement = dr.GetBoolean 3
+                        Name = dr.GetString(0)
+                        Type = dr.GetString(1)
+                        GoType = dbToGoType(dr.GetString 1, dr.GetBoolean 2)
+                        AutoIncrement = dr.GetBoolean(3)
                     }
             |]
 
@@ -87,10 +109,10 @@ type PostgresReader(cfg0: Config.DatabaseConfig) =
             then failwith ("Expected more than 0 columns in table " + name)
             else "" |> ignore
 
-        let foreignKeys = this.GetConstraints(conn, name, "FOREIGN KEY")
+        let foreignKeys = getConstraints(conn, name, "FOREIGN KEY")
 
         let primaryKey =
-            let keys = this.GetConstraints(conn, name, "PRIMARY KEY")
+            let keys = getConstraints(conn, name, "PRIMARY KEY")
             if keys.Length > 0
                 then Some (keys.[0])
                 else None
@@ -103,19 +125,22 @@ type PostgresReader(cfg0: Config.DatabaseConfig) =
         }
 
     member this.GetTables() : Table[] =
-        use conn = this.GetConn()
+        use conn = getConn()
     
         // Fetch names first so cmd can be closed
         let tableNames =
             let query =
                 "SELECT
-                table_name
-             FROM
-                 information_schema.tables
-             WHERE
-                 table_schema='public'"
-            use cmd = new NpgsqlCommand(query, conn)
+                    table_name
+                 FROM
+                     information_schema.tables
+                 WHERE
+                     table_schema=@schema"
+            use cmd = conn.CreateCommand()
+            cmd.CommandText <- query
+            addStringParameter(cmd, "schema", cfg.Schema)
+
             use dr = cmd.ExecuteReader()
             [| while dr.Read() do yield dr.GetString 0 |]
     
-        [| for name in tableNames do yield this.GetTable(conn, name) |]
+        [| for name in tableNames do yield getTable(conn, name) |]

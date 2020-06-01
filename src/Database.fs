@@ -1,4 +1,4 @@
-namespace Database
+module Database
 
 
 type Column =

@@ -10,7 +10,7 @@ let main (args: string []): int =
     // TODO: validate file
     let cfg = Config.GetConfig(Path.Combine(projectDir, "dbcore.yml"))
 
-    let db = Database.Reader(cfg.Database)
+    let db = Reader.Reader(cfg.Database)
     let tables = db.GetTables()
 
     let ctx: Template.Context = {

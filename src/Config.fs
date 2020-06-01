@@ -8,12 +8,31 @@ open YamlDotNet.Serialization.NamingConventions
 
 
 type DatabaseConfig() =
+    let mutable port = ""
+    let mutable schema = ""
+
     member val Dialect = "postgres" with get, set
     member val Host = "localhost" with get, set
-    member val Port = "5432" with get, set
     member val Database = "" with get, set
     member val Username = "" with get, set
     member val Password = "" with get, set
+
+    member this.Schema
+        with get() : string =
+            if schema <> "" then schema else
+                match this.Dialect with
+                    | "postgres" -> "public"
+                    | "mysql" -> this.Database
+                    | _ -> failwith ("database.schema must be set for unknown dialect: " + this.Dialect)
+
+    member this.Port
+        with get() : string =
+            if port <> "" then port else
+                match this.Dialect with
+                    | "postgres" -> "5432"
+                    | "mysql" -> "3306"
+                    | _ -> failwith ("database.port must be set for unknown dialect: " + this.Dialect)
+        and set(value: string) = port <- value
 
 
 type IConfig =

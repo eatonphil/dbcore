@@ -9,7 +9,11 @@ import (
 
 	"github.com/jmoiron/sqlx"
 	"github.com/julienschmidt/httprouter"
+	{{ if database.dialect == "postgres" }}
 	_ "github.com/lib/pq"
+	{{ else if database.dialect == "mysql" }}
+	_ "github.com/go-sql-driver/mysql"
+	{{ end }}
 	"github.com/sirupsen/logrus"
 
 	"{{api.extra.repo}}/go/pkg/dao"

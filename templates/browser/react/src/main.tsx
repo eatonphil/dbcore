@@ -16,17 +16,14 @@ import { {{ table.name | string.capitalize }} } from './views/List{{ table.name 
 function App() {
   const [pageLoaded, setPageLoaded] = React.useState(false);
   React.useEffect(() => {
-    async function fetchToken() {
-      const sessionToken = await browser.cookie.get({ name: 'au' });
-      if (!sessionToken) {
-        window.location = Login.path;
-        return;
-      }
-
-      setPageLoaded(true);
+    const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+    const sessionToken = match ? match[2] : '';
+    if (!sessionToken && window.location.pathname !== '/login') {
+      window.location.href = '/login';
+      return;
     }
 
-    fetchToken();
+    setPageLoaded(true);
   });
 
   if (!pageLoaded) {

@@ -1,5 +1,8 @@
 import React from 'react';
 
+import { Button } from '../components/Button';
+import { Input } from '../components/Input';
+
 export function Login() {
   const [username, setUsername] = React.useState('');
   const [password, setPassword] = React.useState('');
@@ -29,16 +32,24 @@ export function Login() {
   });
 
   return (
-    <form onSubmit={handleSubmit}>
-      <label>
-        Username:
-        <input value={username} onChange={(e) => setUsername(e.target.value)} />
-      </label>
-      <label>
-        Password:
-        <input value={password} onChange={(e) => setPassword(e.target.value)} type="password" />
-      </label>
-      {error && <div className="text-red-600">{error}</div>}
-    </form>
+    <div class="w-full max-w-xs">
+      <form onSubmit={handleSubmit}>
+        <Input
+          label="Username"
+          id="username"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+        />
+        <Input
+          label="Password"
+          id="password"
+          value={password}
+          type="password"
+          onChange={(e) => setPassword(e.target.value)}
+        />
+        {error && <div className="text-red-600">{error}</div>}
+        <Button>Sign in</Button>
+      </form>
+    </div>
   );
 }

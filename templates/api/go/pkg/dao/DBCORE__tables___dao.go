@@ -35,10 +35,8 @@ FROM
 %s
 ORDER BY
   %s
-LIMIT
-  %d
-OFFSET
-  %d`, where.filter, p.Order, p.Offset, p.Limit)
+LIMIT %d
+OFFSET %d`, where.filter, p.Order, p.Offset, p.Limit)
 	rows, err := d.db.Queryx(query, where.args...)
 	if err != nil {
 		return nil, err

@@ -9,9 +9,9 @@ import {
 import { Header } from './components/Header';
 import { Home } from './views/Home';
 import { Login } from './views/Login';
-{{ ~ for table in tables ~}}
+{{~ for table in tables ~}}
 import { {{ table | string.capitalize }} } from './views/List{{ table }}';
-{{ ~endfor ~}}
+{{~ end ~}}
 
 function App() {
   const [pageLoaded, setPageLoaded] = React.useState(false);
@@ -50,7 +50,7 @@ function App() {
           <Route exact path="/{{ table }}">
             <{{ table | string.capitalize}} />
           </Route>
-          {{~ endfor ~}}
+          {{~ end ~}}
         </Switch>
       </div>
     </Router>

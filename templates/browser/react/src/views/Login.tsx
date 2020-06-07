@@ -38,7 +38,7 @@ export function Login() {
         Password:
         <input value={password} onChange={(e) => setPassword(e.target.value)} type="password" />
       </label>
-      {error && <div class="text-red-900">{error}</div>}
+      {error && <div className="text-red-600">{error}</div>}
     </form>
   );
 }

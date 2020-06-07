@@ -16,7 +16,7 @@ import (
 	{{ end }}
 	"github.com/sirupsen/logrus"
 
-	"{{api.extra.repo}}/go/pkg/dao"
+	"{{ api.extra.repo }}/{{ out_dir }}/pkg/dao"
 )
 
 type Server struct {

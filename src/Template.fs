@@ -23,6 +23,8 @@ type Context =
         Tables: Database.Table[]
         Api: Config.ApiConfig
         Browser: Config.BrowserConfig
+        OutDir: string
+        Template: string
     }
 
 
@@ -53,8 +55,8 @@ let private generate(templateDir: string, projectDir: string, cfg: Config.IConfi
     // Required for distribution to get right base path (especially within single file executable)
     let baseDir = System.AppContext.BaseDirectory
     let sourceDir = Path.Combine(baseDir, templateDir, cfg.Template)
-    let outDir = Path.Combine(projectDir, cfg.Template)
-    writeProjectToDisk(sourceDir, outDir, ctx)
+    let outDir = Path.Combine(projectDir, cfg.OutDir)
+    writeProjectToDisk(sourceDir, outDir, { ctx with OutDir=cfg.OutDir; Template=cfg.Template })
 
     printfn "[DEBUG] Running post install script: %s"
         (Path.Combine(outDir, "scripts/post-generate.sh"))

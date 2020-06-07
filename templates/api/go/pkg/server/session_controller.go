@@ -10,7 +10,7 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/julienschmidt/httprouter"
 
-	"{{ api.extra.repo }}/go/pkg/dao"
+	"{{ api.extra.repo }}/{{ out_dir }}/pkg/dao"
 )
 
 func (s Server) SessionStartController(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {

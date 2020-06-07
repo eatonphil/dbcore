@@ -18,10 +18,10 @@ export function List(props: Props) {
         className="w-full"
       />
 
-      {error && <div class="text-red-600">{error}</div>}
+      {error && <div className="text-red-600">{error}</div>}
 
       <div className={`grid grid-cols-${cols.length}`}>
-        {cols.map(col => <div class="grid-header-col">{col}</div>)}
+        {cols.map(col => <div className="grid-header-col">{col}</div>)}
         {rows}
       </div>
     </div>

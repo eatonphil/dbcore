@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"strings"
 
-	"{{ api.extra.repo }}/go/pkg/dao"
+	"{{ api.extra.repo }}/{{ out_dir }}/pkg/dao"
 )
 
 func sendValidationErrorResponse(w http.ResponseWriter, msg string) {

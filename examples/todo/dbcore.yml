@@ -13,3 +13,5 @@ api:
     enabled: true
   extra:
     repo: github.com/eatonphil/dbcore-todo
+
+browser: {}

@@ -4,6 +4,7 @@ import (
 	"regexp"
 
 	"github.com/jmoiron/sqlx"
+	"github.com/sirupsen/logrus"
 	"github.com/xwb1989/sqlparser"
 	"github.com/xwb1989/sqlparser/dependency/querypb"
 	"github.com/xwb1989/sqlparser/dependency/sqltypes"
@@ -17,10 +18,17 @@ type Pagination struct {
 
 type DAO struct {
 	db *sqlx.DB
+	logger logrus.FieldLogger
 }
 
-func New(db *sqlx.DB) *DAO {
-	return &DAO{db}
+func New(db *sqlx.DB, logger logrus.FieldLogger) *DAO {
+	return &DAO{
+		db: db,
+		logger: logger.WithFields(logrus.Fields{
+			"struct": "DAO",
+			"pkg": "dao",
+		}),
+	}
 }
 
 type Filter struct {

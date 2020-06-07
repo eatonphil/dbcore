@@ -9,27 +9,33 @@ export function Login() {
   const [password, setPassword] = React.useState('');
 
   const [error, setError] = React.useState('');
-  const handleSubmit = React.useCallback(async () => {
+  const handleSubmit = React.useCallback(async (e) => {
+    e.preventDefault();
     setError('');
 
-    const req = await window.fetch('http://localhost:9091/v1/session/create', {
-      method: 'POST',
-      body: JSON.stringify({
-        username,
-        password,
-      }),
-      headers: {
-        'content-type': 'application/json',
-      },
-    });
+    try {
+      const req = await window.fetch('http://localhost:9090/v1/session/start', {
+        method: 'POST',
+        body: JSON.stringify({
+          username,
+          password,
+        }),
+        headers: {
+          'content-type': 'application/json',
+        },
+      });
 
-    const rsp = await req.json();
-    if (rsp.error) {
-      setError(rsp.error);
-      return;
+      const rsp = await req.json();
+      if (rsp.error) {
+        setError(rsp.error);
+        return;
+      }
+
+      window.location.href = '/';
+    } catch (e) {
+      console.error(e);
+      return false;
     }
-
-    window.location.href = '/';
   });
 
   return (
@@ -44,7 +50,7 @@ export function Login() {
               onChange={(e) => setUsername(e.target.value)}
             />
           </div>
-          <div className="mb-6">
+          <div className="mb-4">
             <Input
               label="Password"
               id="password"
@@ -53,8 +59,8 @@ export function Login() {
               onChange={(e) => setPassword(e.target.value)}
             />
           </div>
-          {error && <div className="text-red-600">{error}</div>}
-          <Button>Sign in</Button>
+          <Button type="submit">Sign in</Button>
+          {error && <div className="text-red-600 text-sm mt-4">{error}</div>}
         </Form>
       </div>
     </div>

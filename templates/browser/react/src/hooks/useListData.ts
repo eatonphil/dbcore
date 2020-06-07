@@ -11,7 +11,7 @@ export function useListData(endpoint: string) {
     async function fetchRows() {
       setError('');
 
-      const req = await window.fetch(`http://localhost:9091${endpoint}?offset=${offset}&limit=${limit}&filter=${filter}`);
+      const req = await window.fetch(`http://localhost:9090${endpoint}?offset=${offset}&limit=${limit}&filter=${filter}`);
       const rsp = await req.json();
       if (rsp.error) {
         setError(error);

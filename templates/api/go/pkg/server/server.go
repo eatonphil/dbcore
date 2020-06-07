@@ -26,6 +26,7 @@ type Server struct {
 	address string
 	secret string
 	sessionDuration time.Duration
+	allowedOrigins []string
 }
 
 func (s Server) registerControllers() {
@@ -106,7 +107,7 @@ func New(conf *Config) (*Server, error) {
 	logger.SetLevel(logrus.DebugLevel)
 
 	return &Server{
-		dao: dao.New(db),
+		dao: dao.New(db, logger),
 		router: router,
 		logger: logger.WithFields(logrus.Fields{
 			"struct": "Server",
@@ -115,5 +116,6 @@ func New(conf *Config) (*Server, error) {
 		address: conf.GetString("address", ":9090"),
 		secret: secret,
 		sessionDuration: conf.GetDuration("session.duration", time.Hour * 2),
+		allowedOrigins : conf.GetStringSlice("allowed-origins"),
 	}, nil
 }

@@ -1,6 +1,7 @@
 import React from 'react';
 
 import { Button } from '../components/Button';
+import { Form } from '../components/Form';
 import { Input } from '../components/Input';
 
 export function Login() {
@@ -32,24 +33,28 @@ export function Login() {
   });
 
   return (
-    <div class="w-full max-w-xs">
-      <form onSubmit={handleSubmit}>
+    <div className="w-full max-w-xs">
+      <Form onSubmit={handleSubmit}>
         <Input
+          <div className="mb-4">
           label="Username"
           id="username"
           value={username}
           onChange={(e) => setUsername(e.target.value)}
-        />
-        <Input
-          label="Password"
-          id="password"
-          value={password}
-          type="password"
-          onChange={(e) => setPassword(e.target.value)}
-        />
+          />
+        </div>
+        <div className="mb-6">
+          <Input
+            label="Password"
+            id="password"
+            value={password}
+            type="password"
+            onChange={(e) => setPassword(e.target.value)}
+          />
+        </div>
         {error && <div className="text-red-600">{error}</div>}
         <Button>Sign in</Button>
-      </form>
+      </Form>
     </div>
   );
 }

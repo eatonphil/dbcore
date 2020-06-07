@@ -33,28 +33,30 @@ export function Login() {
   });
 
   return (
-    <div className="w-full max-w-xs">
-      <Form onSubmit={handleSubmit}>
-        <Input
+    <div className="flex justify-center">
+      <div className="w-full max-w-xs">
+        <Form onSubmit={handleSubmit}>
           <div className="mb-4">
-          label="Username"
-          id="username"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-          />
-        </div>
-        <div className="mb-6">
-          <Input
-            label="Password"
-            id="password"
-            value={password}
-            type="password"
-            onChange={(e) => setPassword(e.target.value)}
-          />
-        </div>
-        {error && <div className="text-red-600">{error}</div>}
-        <Button>Sign in</Button>
-      </Form>
+            <Input
+              label="Username"
+              id="username"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+            />
+          </div>
+          <div className="mb-6">
+            <Input
+              label="Password"
+              id="password"
+              value={password}
+              type="password"
+              onChange={(e) => setPassword(e.target.value)}
+            />
+          </div>
+          {error && <div className="text-red-600">{error}</div>}
+          <Button>Sign in</Button>
+        </Form>
+      </div>
     </div>
   );
 }

@@ -54,7 +54,7 @@ type ApiConfig() =
 
     member val Auth = ApiAuthConfig() with get, set
     member val RouterPrefix = "" with get, set
-    member val Extra = Dictionary<string, object>() with get, set
+    member val Extra = Dictionary<string, obj>() with get, set
 
 
 type BrowserConfig() =
@@ -68,7 +68,7 @@ type CustomConfig() =
         member val OutDir = "" with get, set
         member val Template = "" with get, set
 
-    member val Extra = Dictionary<string, object>() with get, set
+    member val Extra = Dictionary<string, obj>() with get, set
 
 type Config() =
     member val Project = "" with get, set

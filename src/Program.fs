@@ -19,6 +19,8 @@ let main (args: string []): int =
         Api = cfg.Api
         Browser = cfg.Browser
         Tables = tables
+        Template = ""
+        OutDir = ""
     }
     Template.GenerateApi(projectDir, cfg.Api, ctx)
     Template.GenerateBrowser(projectDir, cfg.Browser, ctx)

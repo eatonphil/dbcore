@@ -10,7 +10,7 @@ import { Header } from './components/Header';
 import { Home } from './views/Home';
 import { Login } from './views/Login';
 {{~ for table in tables ~}}
-import { {{ table | string.capitalize }} } from './views/List{{ table }}';
+import { {{ table.name | string.capitalize }} } from './views/List{{ table.name }}';
 {{~ end ~}}
 
 function App() {
@@ -47,8 +47,8 @@ function App() {
           </Route>
 
           {{~ for table in tables ~}}
-          <Route exact path="/{{ table }}">
-            <{{ table | string.capitalize}} />
+          <Route exact path="/{{ table.name }}">
+            <{{ table.name | string.capitalize}} />
           </Route>
           {{~ end ~}}
         </Switch>

@@ -9,6 +9,7 @@ export function useListData(endpoint: string) {
   const [filter, setFilter] = React.useState('');
   const [sortColumn, setSortColumn] = React.useState('id');
   const [sortOrder, setSortOrder] = React.useState('desc');
+
   React.useEffect(function () {
     async function fetchRows() {
       setError('');
@@ -27,11 +28,11 @@ export function useListData(endpoint: string) {
       }
 
       setRows(rsp.data);
-      setCols(Object.keys(rsp.data[0]));
+      setCols(rsp.data.length ? Object.keys(rsp.data[0]) : []);
     }
 
     fetchRows();
-  }, [offset, limit, filter]);
+  }, [offset, limit, filter, sortColumn, sortOrder]);
 
   return {
     cols,

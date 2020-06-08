@@ -11,7 +11,6 @@ export function List(props: Props) {
 
   return (
     <div>
-      {/* TODO: debounce this */}
       <textarea
         onChange={(e) => setFilter(e.target.value)}
         value={filter}

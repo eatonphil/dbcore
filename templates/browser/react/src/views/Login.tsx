@@ -23,6 +23,7 @@ export function Login() {
         headers: {
           'content-type': 'application/json',
         },
+        credentials: 'include',
       });
 
       const rsp = await req.json();

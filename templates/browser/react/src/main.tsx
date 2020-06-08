@@ -16,7 +16,7 @@ import { {{ table.name | string.capitalize }} } from './views/List{{ table.name 
 function App() {
   const [pageLoaded, setPageLoaded] = React.useState(false);
   React.useEffect(() => {
-    const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+    const match = document.cookie.match(new RegExp('(^| )au=([^;]+)'));
     const sessionToken = match ? match[2] : '';
     if (!sessionToken && window.location.pathname !== '/login') {
       window.location.href = '/login';

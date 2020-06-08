@@ -3,6 +3,7 @@ package server
 {{ if api.auth.enabled }}
 import (
 	"net/http"
+	"strings"
 	"time"
 
 	"golang.org/x/crypto/bcrypt"
@@ -69,6 +70,7 @@ func (s Server) SessionStartController(w http.ResponseWriter, r *http.Request, _
 		Name: "au",
 		Value: token,
 		Expires: time.Now().Add(s.sessionDuration),
+		Path: "/",
 	})
 			
 	sendResponse(w, struct{

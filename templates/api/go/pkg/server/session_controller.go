@@ -3,6 +3,7 @@ package server
 {{ if api.auth.enabled }}
 import (
 	"net/http"
+	"strings"
 	"time"
 
 	"golang.org/x/crypto/bcrypt"
@@ -10,7 +11,7 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/julienschmidt/httprouter"
 
-	"{{ api.extra.repo }}/go/pkg/dao"
+	"{{ api.extra.repo }}/{{ out_dir }}/pkg/dao"
 )
 
 func (s Server) SessionStartController(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
@@ -21,7 +22,7 @@ func (s Server) SessionStartController(w http.ResponseWriter, r *http.Request, _
 
 	err := getBody(r, &userPass)
 	if err != nil {
-		sendValidationErrorResponse(w, fmt.Sprintf(`Expected "username" and "password" in body, got: %s`, err))
+		sendValidationErrorResponse(w, fmt.Sprintf(`Expected username and password in body, got: %s`, err))
 		return
 	}
 
@@ -29,7 +30,7 @@ func (s Server) SessionStartController(w http.ResponseWriter, r *http.Request, _
 	filter, err := dao.ParseFilter(q)
 	if err != nil {
 		s.logger.Debugf("Error while parsing {{ api.auth.username }}: %s", err)
-		sendValidationErrorResponse(w, `Expected valid "username"`)
+		sendValidationErrorResponse(w, `Expected valid username`)
 		return
 	}
 
@@ -41,14 +42,14 @@ func (s Server) SessionStartController(w http.ResponseWriter, r *http.Request, _
 	}
 
 	if result.Total == 0 {
-		sendValidationErrorResponse(w, `Invalid "username" or "password"`)
+		sendValidationErrorResponse(w, `Invalid username or password`)
 		return
 	}
 
 	user := result.Data[0]
 	err = bcrypt.CompareHashAndPassword([]byte(user.C_{{ api.auth.password }}), []byte(userPass.Password))
 	if err != nil {
-		sendValidationErrorResponse(w, `Invalid "username" or "password"`)
+		sendValidationErrorResponse(w, `Invalid username or password`)
 		return
 	}
 
@@ -58,7 +59,6 @@ func (s Server) SessionStartController(w http.ResponseWriter, r *http.Request, _
 		"nbf": time.Now().Unix(),
 		"iat": time.Now().Unix(),
 	})
-	fmt.Println(time.Now().Add(s.sessionDuration).Unix())
 	token, err := unsignedToken.SignedString([]byte(s.secret))
 	if err != nil {
 		s.logger.Debugf("Error signing string: %s", err)
@@ -70,6 +70,7 @@ func (s Server) SessionStartController(w http.ResponseWriter, r *http.Request, _
 		Name: "au",
 		Value: token,
 		Expires: time.Now().Add(s.sessionDuration),
+		Path: "/",
 	})
 			
 	sendResponse(w, struct{

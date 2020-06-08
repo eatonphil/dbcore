@@ -54,13 +54,13 @@ type ApiConfig() =
 
     member val Auth = ApiAuthConfig() with get, set
     member val RouterPrefix = "" with get, set
-    member val Extra = Dictionary<string, string>() with get, set
+    member val Extra = Dictionary<string, obj>() with get, set
 
 
 type BrowserConfig() =
     interface IConfig with
         member val OutDir = "browser" with get, set
-        member val Template = "react-ts" with get, set
+        member val Template = "react" with get, set
 
 
 type CustomConfig() =
@@ -68,8 +68,7 @@ type CustomConfig() =
         member val OutDir = "" with get, set
         member val Template = "" with get, set
 
-    // TODO: allow any nested structure, unsure how to type
-    member val Extra = Dictionary<string, string>() with get, set
+    member val Extra = Dictionary<string, obj>() with get, set
 
 type Config() =
     member val Project = "" with get, set

@@ -2,17 +2,28 @@ package server
 
 import (
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/sirupsen/logrus"
 
-	"{{ api.extra.repo }}/go/pkg/dao"
+	"{{ api.extra.repo }}/{{ out_dir }}/pkg/dao"
 )
 
 func (s Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	s.logger.Infof("%s %s", r.Method, r.URL.RequestURI())
 	w.Header().Set("Content-Type", "application/json")
+
+	for _, allowed := range s.allowedOrigins {
+		origin := strings.ToLower(r.Header.Get("origin"))
+		if strings.ToLower(allowed) == origin {
+			w.Header().Set("Access-Control-Allow-Origin", origin)
+			w.Header().Set("Access-Control-Allow-Credentials", "true")
+			w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
+			w.Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, Authorization, Origin")
+		}
+	}
 
 	{{ if api.auth.enabled }}
 	if r.URL.Path == "/{{ api.router_prefix }}session/start" {

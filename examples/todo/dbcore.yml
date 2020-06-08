@@ -1,4 +1,4 @@
-project: dbcore-todo
+project: todo
 
 database:
   # Switch this to 'mysql' for mysql
@@ -13,3 +13,5 @@ api:
     enabled: true
   extra:
     repo: github.com/eatonphil/dbcore-todo
+
+browser: {}

@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"os"
 	"os/signal"
@@ -16,7 +17,7 @@ import (
 	{{ end }}
 	"github.com/sirupsen/logrus"
 
-	"{{api.extra.repo}}/go/pkg/dao"
+	"{{ api.extra.repo }}/{{ out_dir }}/pkg/dao"
 )
 
 type Server struct {
@@ -26,6 +27,7 @@ type Server struct {
 	address string
 	secret string
 	sessionDuration time.Duration
+	allowedOrigins []string
 }
 
 func (s Server) registerControllers() {
@@ -62,7 +64,13 @@ func (s Server) registerSigintHandler(srv *http.Server) {
 	}
 }
 
+func (s Server) handlePanic(w http.ResponseWriter, r *http.Request, err interface{}) {
+	s.logger.Warn(err)
+	sendErrorResponse(w, fmt.Errorf("Internal server error"))
+}
+
 func (s Server) Start() {
+	s.router.PanicHandler = s.handlePanic
 	s.registerControllers()
 
 	srv := &http.Server{
@@ -106,7 +114,7 @@ func New(conf *Config) (*Server, error) {
 	logger.SetLevel(logrus.DebugLevel)
 
 	return &Server{
-		dao: dao.New(db),
+		dao: dao.New(db, logger),
 		router: router,
 		logger: logger.WithFields(logrus.Fields{
 			"struct": "Server",
@@ -115,5 +123,6 @@ func New(conf *Config) (*Server, error) {
 		address: conf.GetString("address", ":9090"),
 		secret: secret,
 		sessionDuration: conf.GetDuration("session.duration", time.Hour * 2),
+		allowedOrigins : conf.GetStringSlice("allowed-origins"),
 	}, nil
 }

@@ -4,5 +4,8 @@ database:
 
 address: :9090
 
+allowed-origins:
+  - http://localhost:9091
+
 session:
   secret: TODO

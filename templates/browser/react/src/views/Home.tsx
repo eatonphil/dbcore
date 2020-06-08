@@ -1,10 +1,12 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 
+import { Heading } from '../components/Heading';
+
 export function Home() {
   return (
     <>
-      <h2>Home!</h2>
+      <Heading size="xl">Home!</Heading>
       <ul>
         {{~ for table in tables ~}}
         {{~ if table.primary_key.is_none

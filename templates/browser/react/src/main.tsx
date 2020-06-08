@@ -39,24 +39,26 @@ function App() {
       <div>
         <Header />
 
-        <Switch>
-          <Route exact path="/">
-            <Home />
-          </Route>
-          <Route exact path="/login">
-            <Login />
-          </Route>
-
-          {{~ for table in tables ~}}
-          {{~ if table.primary_key.is_none
-                continue
-              end
-          ~}}
-          <Route exact path="/{{ table.name }}">
-            <{{ table.name | string.capitalize}} />
-          </Route>
-          {{~ end ~}}
-        </Switch>
+        <div className="container mx-auto">
+          <Switch>
+            <Route exact path="/">
+              <Home />
+            </Route>
+            <Route exact path="/login">
+              <Login />
+            </Route>
+          
+            {{~ for table in tables ~}}
+            {{~ if table.primary_key.is_none
+                  continue
+                end
+            ~}}
+            <Route exact path="/{{ table.name }}">
+              <{{ table.name | string.capitalize}} />
+            </Route>
+            {{~ end ~}}
+          </Switch>
+        </div>
       </div>
     </Router>
   );

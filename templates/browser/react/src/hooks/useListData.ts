@@ -7,11 +7,17 @@ export function useListData(endpoint: string) {
   const [offset, setOffset] = React.useState(0);
   const [limit, setLimit] = React.useState(25);
   const [filter, setFilter] = React.useState('');
+  const [sortColumn, setSortColumn] = React.useState('id');
+  const [sortOrder, setSortOrder] = React.useState('desc');
   React.useEffect(function () {
     async function fetchRows() {
       setError('');
 
-      const req = await window.fetch(`http://localhost:9090${endpoint}?offset=${offset}&limit=${limit}&filter=${filter}`, {
+      const url = `http://localhost:9090${endpoint}?`;
+      const params = Object.entries({ offset, limit, filter, sortColumn, sortOrder })
+                           .map(([key, value]) => `${key}=${value}`)
+                           .join('&');
+      const req = await window.fetch(url + params, {
         credentials: 'include',
       });
       const rsp = await req.json();

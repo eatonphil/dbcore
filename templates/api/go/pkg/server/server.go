@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"os"
 	"os/signal"
@@ -63,7 +64,13 @@ func (s Server) registerSigintHandler(srv *http.Server) {
 	}
 }
 
+func (s Server) handlePanic(w http.ResponseWriter, r *http.Request, err interface{}) {
+	s.logger.Warn(err)
+	sendErrorResponse(w, fmt.Errorf("Internal server error"))
+}
+
 func (s Server) Start() {
+	s.router.PanicHandler = s.handlePanic
 	s.registerControllers()
 
 	srv := &http.Server{

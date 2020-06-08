@@ -5,9 +5,17 @@ export function Home() {
   return (
     <>
       <h2>Home!</h2>
-      {{~ for table in tables ~}}
-      <Link to="/{{ table.name }}">{{ table.name|string.capitalize }}</Link>
-      {{~ end ~}}
+      <ul>
+        {{~ for table in tables ~}}
+        {{~ if table.primary_key.is_none
+              continue
+            end
+        ~}}
+        <li>
+          <Link to="/{{ table.name }}">{{ table.name|string.capitalize }}</Link>
+        </li>
+        {{~ end ~}}
+      </ul>
     </>
   );
 }

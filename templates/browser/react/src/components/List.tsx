@@ -22,7 +22,7 @@ export function List(props: Props) {
 
       <div className={`grid grid-cols-${cols.length}`}>
         {cols.map(col => <div className="grid-header-col">{col}</div>)}
-        {rows}
+        {rows.map(row => cols.map(col => <div>{row[col]}</div>))}
       </div>
     </div>
   );

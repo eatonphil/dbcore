@@ -10,6 +10,10 @@ import { Header } from './components/Header';
 import { Home } from './views/Home';
 import { Login } from './views/Login';
 {{~ for table in tables ~}}
+{{~ if table.primary_key.is_none
+      continue
+    end
+~}}
 import { {{ table.name | string.capitalize }} } from './views/List{{ table.name }}';
 {{~ end ~}}
 
@@ -44,6 +48,10 @@ function App() {
           </Route>
 
           {{~ for table in tables ~}}
+          {{~ if table.primary_key.is_none
+                continue
+              end
+          ~}}
           <Route exact path="/{{ table.name }}">
             <{{ table.name | string.capitalize}} />
           </Route>

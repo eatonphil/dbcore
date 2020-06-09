@@ -9,7 +9,7 @@ export function useListData(endpoint: string) {
   const [limit, setLimit] = React.useState(25);
   const [filter, setFilter] = React.useState('');
   const [sortColumn, setSortColumn] = React.useState('id');
-  const [sortOrder, setSortOrder] = React.useState('desc');
+  const [sortOrder, setSortOrder] = React.useState('asc');
 
   React.useEffect(function () {
     async function fetchRows() {

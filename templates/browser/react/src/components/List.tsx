@@ -27,9 +27,15 @@ export function List(props: Props) {
 
   const pageInfo = (
     <div className="text-right text-gray-700 p-2">
-      <PageButton disabled={offset === 0} onClick={() => setOffset(o => o + limit)}>&#x2BC7;</PageButton>
+      <PageButton
+        disabled={offset === 0}
+        onClick={() => setOffset(o => o - limit)}
+      >&#x2BC7;</PageButton>
       Showing {offset + 1}-{offset + Math.min(limit, rows.length)} of {total}
-      <PageButton disabled={offset === Math.floor(total / limit)} onClick={() => setOffset(o => o - limit)}>&#x2BC8;</PageButton>
+      <PageButton
+        disabled={Math.floor(offset / limit) === Math.floor(total / limit)}
+        onClick={() => setOffset(o => o + limit)}
+      >&#x2BC8;</PageButton>
     </div>
   );
 

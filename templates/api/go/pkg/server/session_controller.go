@@ -77,6 +77,19 @@ func (s Server) SessionStartController(w http.ResponseWriter, r *http.Request, _
 		Token string `json:"token"`
 	}{token})
 }
+
+func (s Server) SessionStopController(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+	http.SetCookie(w, &http.Cookie{
+		Name: "au",
+		Value: "",
+		Expires: time.Now().Add(-1 * s.sessionDuration),
+		Path: "/",
+	})
+
+	sendResponse(w, struct{
+		Token string `json:"token"`
+	}{""})
+}
 {{ else }}
 // Auth not enabled.
 {{ end }}

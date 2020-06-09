@@ -4,6 +4,22 @@ import { Button } from '../components/Button';
 import { Form } from '../components/Form';
 import { Input } from '../components/Input';
 
+export function Logout() {
+  React.useEffect(() => {
+    async function stop() {
+      await window.fetch('http://localhost:9090/v1/session/stop', {
+        method: 'POST',
+        credentials: 'include',
+      });
+      window.location.href = '/login';
+    }
+
+    stop();
+  });
+
+  return null;
+}
+
 export function Login() {
   const [username, setUsername] = React.useState('');
   const [password, setPassword] = React.useState('');
@@ -32,7 +48,8 @@ export function Login() {
         return;
       }
 
-      window.location.href = '/';
+      const params = new URLSearchParams(window.location.search);
+      window.location.href = params.get('return') || '/';
     } catch (e) {
       console.error(e);
       return false;

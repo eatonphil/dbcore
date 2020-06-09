@@ -3,15 +3,22 @@ import React from 'react';
 import { Button } from '../components/Button';
 import { Form } from '../components/Form';
 import { Input } from '../components/Input';
+import { fetch } from '../util/api';
 
 export function Logout() {
   React.useEffect(() => {
     async function stop() {
-      await window.fetch('http://localhost:9090/v1/session/stop', {
-        method: 'POST',
-        credentials: 'include',
-      });
-      window.location.href = '/login';
+      // Should plan to redirect to /login even if the request fails
+      // for some reason, but does need to be await-ed so the request
+      // is not cancelled on navigation.
+      try {
+        await fetch('session/stop', {
+          method: 'POST',
+          credentials: 'include',
+        });
+      } finally {
+        window.location.href = '/login';
+      }
     }
 
     stop();
@@ -30,19 +37,11 @@ export function Login() {
     setError('');
 
     try {
-      const req = await window.fetch('http://localhost:9090/v1/session/start', {
-        method: 'POST',
-        body: JSON.stringify({
-          username,
-          password,
-        }),
-        headers: {
-          'content-type': 'application/json',
-        },
-        credentials: 'include',
+      const rsp = await fetch('session/start', {
+        username,
+        password,
       });
 
-      const rsp = await req.json();
       if (rsp.error) {
         setError(rsp.error);
         return;

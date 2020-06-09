@@ -1,5 +1,7 @@
 import React from 'react';
 
+import { fetch } from '../util/api';
+
 export function useListData(endpoint: string) {
   const [cols, setCols] = React.useState([]);
   const [rows, setRows] = React.useState([]);
@@ -15,14 +17,10 @@ export function useListData(endpoint: string) {
     async function fetchRows() {
       setError('');
 
-      const url = `http://localhost:9090${endpoint}?`;
       const params = Object.entries({ offset, limit, filter, sortColumn, sortOrder })
                            .map(([key, value]) => `${key}=${value}`)
                            .join('&');
-      const req = await window.fetch(url + params, {
-        credentials: 'include',
-      });
-      const rsp = await req.json();
+      const rsp = await fetch(endpoint + '?' + params);
       if (rsp.error) {
         setRows([]);
         setCols([]);

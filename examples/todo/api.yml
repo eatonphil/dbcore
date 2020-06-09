@@ -2,7 +2,7 @@ database:
   dialect: mysql
   dsn: root@/todo?sql_mode=ANSI
 
-address: :9090
+address: localhost:9090
 
 allowed-origins:
   - http://localhost:9091

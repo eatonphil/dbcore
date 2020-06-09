@@ -12,9 +12,7 @@ export function {{ table.name|string.capitalize }}() {
   return (
     <>
       <Heading size="xl" actions={actions}>{{ table.name|string.capitalize }}</Heading>
-      <List
-        endpoint="/v1/{{ table.name }}"
-      />
+      <List endpoint="{{ table.name }}" />
     </>
   );
 }

@@ -23,6 +23,10 @@ func (s Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
 			w.Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, Authorization, Origin")
 		}
+
+		if r.Method == http.MethodOptions {
+			return
+		}
 	}
 
 	{{ if api.auth.enabled }}
@@ -55,7 +59,7 @@ func (s Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			return []byte(s.secret), nil
 		})
 		if err != nil {
-			s.logger.Debugf("Error parsing JWT:", err)
+			s.logger.Debugf("Error parsing JWT: %s", err)
 			return false
 		}
 
@@ -99,6 +103,12 @@ func (s Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return true
 	}()
 	if !authorized {
+		http.SetCookie(w, &http.Cookie{
+			Name: "au",
+			Value: "",
+			Expires: time.Now().Add(-1 * s.sessionDuration),
+			Path: "/",
+		})
 		w.WriteHeader(http.StatusUnauthorized)
 		sendResponse(w, struct{
 			Error string `json:"error"`

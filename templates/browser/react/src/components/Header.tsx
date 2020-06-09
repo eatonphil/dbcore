@@ -13,11 +13,13 @@ export function Header() {
             </Link>
           </h1>
         </div>
+        {{ if api.auth.enabled }}
         {window.location.pathname !== "/login" && (
           <div className="flex">
             <Link className="text-sm text-black-600" to="/logout">Logout</Link>
           </div>
         )}
+        {{ end }}
       </nav>
     </div>
   );

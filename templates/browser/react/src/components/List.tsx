@@ -39,13 +39,20 @@ export function List(props: Props) {
     </div>
   );
 
+  const handleFilter = React.useCallback((e) => {
+    setFilter(e.target.value);
+    // Also reset page back to zero on filter change.
+    setOffset(0);
+  });
+
   return (
     <div>
       <textarea
-        onChange={(e) => setFilter(e.target.value)}
+        id="filter"
+        onChange={handleFilter}
         value={filter}
         className="border w-full py-2 px-3 text-gray-700 mb-4 leading-tight"
-        placeholder="id = 2"
+        placeholder="Type to filter (e.g. id = 2)"
       />
 
       {error && <div className="bg-red-600 text-white p-2 mb-2">{error}</div>}

@@ -2,7 +2,7 @@
 
 DBCore is a code generator build around database schemas and an API
 specification. Included with DBCore are templates for generating a Go
-REST API.
+REST API and React UI.
 
 The API specification supports basic CRUD operations with filtering,
 pagination, sorting, and JWT-based username/password authentication.
@@ -10,6 +10,8 @@ pagination, sorting, and JWT-based username/password authentication.
 [See the docs site for more detail.](https://eatonphil.github.io/dbcore/)
 
 ## Example
+
+![Screenshot of list view with pagination](screenshot.jpg)
 
 To build the todo app:
 
@@ -38,6 +40,13 @@ $ curl 'localhost:9090/users?limit=25&offset=0&sortColumn=id&sortOrder=desc' | j
 }
 ```
 
+And to build the UI:
+
+```
+$ cd examples/todo/browser
+$ yarn start
+```
+
 ## Dependencies
 
 * Go
@@ -52,4 +61,4 @@ discover more and you may fix them!
 * Only PostgreSQL and MySQL
 * Only tables supported (i.e. no views)
 * Only single-column foreign keys supported
-* Only Go API templates provided
+* Only Go API, React UI templates provided

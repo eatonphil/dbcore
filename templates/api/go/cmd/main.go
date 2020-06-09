@@ -1,6 +1,5 @@
 package main
 
-import "fmt"
 import "{{ api.extra.repo }}/{{ out_dir }}/pkg/server"
 
 func main() {

@@ -8,7 +8,9 @@ import {
 
 import { Header } from './components/Header';
 import { Home } from './views/Home';
+{{ if api.auth.enabled }}
 import { Login, Logout } from './views/Login';
+{{ end }}
 {{~ for table in tables ~}}
 {{~ if table.primary_key.is_none
       continue
@@ -18,6 +20,7 @@ import { {{ table.name | string.capitalize }} } from './views/List{{ table.name 
 {{~ end ~}}
 
 function App() {
+  {{ if api.auth.enabled }}
   const [pageLoaded, setPageLoaded] = React.useState(false);
   React.useEffect(() => {
     const match = document.cookie.match(new RegExp('(^| )au=([^;]+)'));
@@ -37,6 +40,7 @@ function App() {
   if (!pageLoaded) {
     return null;
   }
+  {{ end }}
 
   return (
     <Router>
@@ -48,12 +52,14 @@ function App() {
             <Route exact path="/">
               <Home />
             </Route>
+            {{ if api.auth.enabled }}
             <Route exact path="/login">
               <Login />
             </Route>
             <Route exact path="/logout">
               <Logout />
             </Route>
+            {{ end }}
           
             {{~ for table in tables ~}}
             {{~ if table.primary_key.is_none

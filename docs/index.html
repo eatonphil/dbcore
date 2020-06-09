@@ -198,10 +198,10 @@ session:
 
 	<h2>Create a new row</h2>
 	<p>
-	  Make a <code>POST</code> request to <code>/$version/$table/new</code>.
+	  Make a <code>POST</code> request to <code>/$version/$table</code>.
 	</p>
 	<h3>Example</h3>
-	<pre><code>$ curl -X POST -d '{"username": "alex", "password": "alex", "name": "Alex"}' localhost:9090/v1/users/new
+	<pre><code>$ curl -X POST -d '{"username": "alex", "password": "alex", "name": "Alex"}' localhost:9090/v1/users
 {"id":1,"username":"alex","password":"&lt;REDACTED&gt;","name":"Alex"}</code></pre>
 
 	<h2>Get a row</h2>

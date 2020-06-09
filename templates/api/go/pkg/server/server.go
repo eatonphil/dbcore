@@ -34,7 +34,7 @@ func (s Server) registerControllers() {
 	{{~ for table in tables ~}}
 	// Register {{table.name}} routes
 	s.router.GET("/{{ api.router_prefix }}{{ table.name }}", s.{{table.name}}GetManyController)
-	s.router.POST("/{{ api.router_prefix }}{{ table.name }}/new", s.{{table.name}}CreateController)
+	s.router.POST("/{{ api.router_prefix }}{{ table.name }}", s.{{table.name}}CreateController)
 	{{~ if table.primary_key.is_some ~}}
 	s.router.GET("/{{ api.router_prefix }}{{ table.name }}/:key", s.{{table.name}}GetController)
 	s.router.PUT("/{{ api.router_prefix }}{{ table.name }}/:key", s.{{table.name}}UpdateController)
@@ -45,6 +45,7 @@ func (s Server) registerControllers() {
 	{{ if api.auth.enabled }}
 	// Register session route
 	s.router.POST("/{{ api.router_prefix }}session/start", s.SessionStartController)
+	s.router.POST("/{{ api.router_prefix }}session/stop", s.SessionStopController)
 	{{ end }}
 }
 

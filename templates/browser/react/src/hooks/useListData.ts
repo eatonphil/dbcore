@@ -3,6 +3,7 @@ import React from 'react';
 export function useListData(endpoint: string) {
   const [cols, setCols] = React.useState([]);
   const [rows, setRows] = React.useState([]);
+  const [total, setTotal] = React.useState(0);
   const [error, setError] = React.useState('');
   const [offset, setOffset] = React.useState(0);
   const [limit, setLimit] = React.useState(25);
@@ -23,10 +24,14 @@ export function useListData(endpoint: string) {
       });
       const rsp = await req.json();
       if (rsp.error) {
-        setError(error);
+        setRows([]);
+        setCols([]);
+        setTotal(0);
+        setError(rsp.error);
         return;
       }
 
+      setTotal(rsp.total);
       setRows(rsp.data);
       setCols(rsp.data.length ? Object.keys(rsp.data[0]) : []);
     }
@@ -44,5 +49,6 @@ export function useListData(endpoint: string) {
     setLimit,
     filter,
     setFilter,
+    total,
   };
 }

@@ -1,12 +1,12 @@
 import React from 'react';
 
-import { Link } from '../components/Link';
+import { Link } from './Link';
 
 export function Header() {
   return (
     <div className="border-b p-4 mb-4">
       <nav className="container mx-auto flex">
-        <div className="text-sm lg:flex-grow">
+        <div className="text-lg lg:flex-grow">
           <h1>
             <Link to="/">
               {{ project|string.capitalize }}
@@ -15,7 +15,7 @@ export function Header() {
         </div>
         {window.location.pathname !== "/login" && (
           <div className="flex">
-            <Link to="#">Logout</Link>
+            <Link className="text-sm text-black-600" to="/logout">Logout</Link>
           </div>
         )}
       </nav>

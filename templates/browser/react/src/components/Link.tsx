@@ -9,7 +9,7 @@ interface Props {
 
 export function Link({
   children,
-  className,
+  className = '',
   to,
 }: Props) {
   return (

@@ -13,7 +13,7 @@ export function Input({
 }: Props) {
   return (
     <label
-      className="block text-gray-700 text-sm font-bold mb-2"
+      className="block text-gray-700 text-sm font-bold mb-2 uppercase text-sm"
       htmlFor={id}
     >
       {label}

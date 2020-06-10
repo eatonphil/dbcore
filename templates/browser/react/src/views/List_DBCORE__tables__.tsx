@@ -1,10 +1,10 @@
 import React from 'react';
 
-import { Link } from '../components/Link';
 import { Heading } from '../components/Heading';
+import { Link } from '../components/Link';
 import { List } from '../components/List';
 
-export function {{ table.name|string.capitalize }}() {
+export function List{{ table.name|string.capitalize }}() {
   const actions = (
     <Link to="/{{ table.name }}/create">Create</Link>
   );

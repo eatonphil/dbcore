@@ -12,11 +12,12 @@ import { Home } from './views/Home';
 import { Login, Logout } from './views/Login';
 {{ end }}
 {{~ for table in tables ~}}
+import { List{{ table.name | string.capitalize }} } from './views/List_{{ table.name }}';
 {{~ if table.primary_key.is_none
       continue
     end
 ~}}
-import { {{ table.name | string.capitalize }} } from './views/List{{ table.name }}';
+import { Create{{ table.name | string.capitalize }} } from './views/Create_{{ table.name }}';
 {{~ end ~}}
 
 function App() {
@@ -62,14 +63,17 @@ function App() {
             {{ end }}
           
             {{~ for table in tables ~}}
+            <Route exact path="/{{ table.name }}">
+              <List{{ table.name | string.capitalize}} />
+            </Route>
             {{~ if table.primary_key.is_none
                   continue
                 end
             ~}}
-            <Route exact path="/{{ table.name }}">
-              <{{ table.name | string.capitalize}} />
+            <Route exact path="/{{ table.name }}/create">
+              <Create{{ table.name | string.capitalize}} />
             </Route>
-            {{~ end ~}}
+            {{ end }}
           </Switch>
         </div>
       </div>

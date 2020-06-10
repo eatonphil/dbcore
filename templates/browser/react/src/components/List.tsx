@@ -61,7 +61,7 @@ export function List(props: Props) {
         <>
           {pageInfo}
           <div className={`grid grid-cols-${cols.length} border-l border-r border-t`}>
-            {cols.map(col => <div key={`header-${col}`} className="font-semibold text-gray-700 p-3 bg-gray-100 border-b">{col}</div>)}
+            {cols.map(col => <div key={`header-${col}`} className="font-semibold text-gray-700 p-3 bg-gray-100 border-b uppercase text-sm">{col}</div>)}
             {rows.map((row, i) => cols.map(col => <div key={`cell-${i}-${col}`} className="text-gray-700 p-3 border-b">{row[col]}</div>))}
           </div>
           {pageInfo}

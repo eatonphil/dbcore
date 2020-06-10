@@ -1,6 +1,5 @@
 import React from 'react';
 
-import { Button } from '../components/Button';
 import { Form } from '../components/Form';
 import { Input } from '../components/Input';
 import { fetch } from '../util/api';
@@ -50,6 +49,7 @@ export function Login() {
       const params = new URLSearchParams(window.location.search);
       window.location.href = params.get('return') || '/';
     } catch (e) {
+      // Need the try-catch so we can return false here.
       console.error(e);
       return false;
     }
@@ -58,7 +58,7 @@ export function Login() {
   return (
     <div className="flex justify-center">
       <div className="w-full max-w-xs">
-        <Form onSubmit={handleSubmit}>
+        <Form buttonText="Sign In" error={error} onSubmit={handleSubmit}>
           <div className="mb-4">
             <Input
               label="Username"
@@ -76,8 +76,6 @@ export function Login() {
               onChange={(e) => setPassword(e.target.value)}
             />
           </div>
-          <Button type="submit">Sign in</Button>
-          {error && <div className="text-red-600 text-sm mt-4">{error}</div>}
         </Form>
       </div>
     </div>

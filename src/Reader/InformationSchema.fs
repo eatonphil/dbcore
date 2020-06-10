@@ -94,16 +94,21 @@ type InformationSchema(cfg0: Config.DatabaseConfig) =
 
     let getTable(conn: IDbConnection, name: string) : Table =
         let columns =
+            let autoIncrementCheck =
+                match cfg.Dialect with
+                    | "postgres" -> "COALESCE(column_default, '') LIKE '%seq%' -- Not the greatest way to detect auto incrementing, but ok for now"
+                    | "mysql" -> "extra LIKE '%auto_increment%'"
+                    | d -> failwith ("Unsupported SQL dialect: " + d)
             let query =
-                "SELECT
+                sprintf "SELECT
                      column_name,
                      data_type,
                      is_nullable <> 'NO',
-                     COALESCE(column_default, '') LIKE '%seq%' -- Not the greatest way to detect auto incrementing, but ok for now
+                     %s
                  FROM
                      information_schema.columns
                  WHERE
-                     table_schema=@schema AND table_name=@name"
+                     table_schema=@schema AND table_name=@name" autoIncrementCheck
             use cmd = conn.CreateCommand()
             cmd.CommandText <- query
             addStringParameter(cmd, "name", name)

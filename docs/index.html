@@ -11,13 +11,14 @@
     </script>
 
     <meta charset="utf-8">
-    <title>DBCore - Code generation powered by your database.</title>
+    <title>DBCore - Applications powered by your database.</title>
     <meta name="description" content="Code generation powered by your database.">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <link rel="stylesheet" href="reset.css">
     <link rel="stylesheet" href="main.css">
-    <link rel="shortcut icon" href="logo.png" type="image/x-icon">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans&display=swap" rel="stylesheet">
+    
 
     <script async defer src="https://buttons.github.io/buttons.js"></script>
   </head>
@@ -26,39 +27,45 @@
     <section class="hero">
       <div class="container">
         <header>
-	  <div class="d-flex">
-	    <img src="logo.png">
-	    <div>
-              <h1>DBCore</h1>
-	    </div>
-	  </div>
-	  <h2>Code generation powered by your database.</h2>
+          <h1>DBCore</h1>
+	  <h2>Applications powered by your database.</h2>
         </header>
-        <ul class="checks">
-	  <li>Reads from PostgreSQL or MySQL</li>
-          <li>
-	    Generate standardized REST APIs with:
+        <ul>
+	  <li>Use PostgreSQL or MySQL</li>
+          <li>To generate a <strong>REST API</strong> and <strong>browser UI</strong>
 	    <ul class="checks">
-	      <li>GET (one, many), POST, DELETE, PUT endpoints</li>
-	      <li>Filtering using a SQL-like DSL</li>
-	      <li>Pagination, sorting</li>
-	      <li>Optional JWT-based authentication</li>
+	      <li>List, add, edit, delete</li>
+	      <li>Filter, paginate, sort</li>
+	      <li>Authenticate with JWT tokens</li>
 	    </ul>
 	  </li>
-	  <li>
-	    Generate CRUD UI against standardized RESET API with:
-	    <ul class="checks">
-	      <li>Per table list view (including filtering, pagination)</li>
-	      <li>Login (based on server settings)</li>
-	    </ul>
-	  </li>
-          <li>Write your own templates to generate database-driven code for any language</li>
-	  <li>MIT license</li>
+	  <li>With an MIT license</li>
         </ul>
 	<p>This software is in ALPHA development.</p>
 	<div class="star">
 	  <a class="github-button" href="https://github.com/eatonphil/dbcore" data-size="large" data-show-count="true" aria-label="Star eatonphil/dbcore on GitHub">Star</a>
 	</div>
+      </div>
+    </section>
+
+    <section id="what-makes-dbcore-special">
+      <div class="container">
+        <header>
+          <h1>What makes DBCore special?</h1>
+	</header>
+        <p>
+	  DBCore reads your database and generates high-quality,
+	  statically typed Go code (for the API) and TypeScript (for
+	  the UI) based on templates.
+	</p>
+	<p>
+	  Not happy with the built-in templates? Write your
+	  own to generate any kind of application you want.
+	</p>
+	<small>The built-in Todo application.</small>
+	<a href="https://raw.githubusercontent.com/eatonphil/dbcore/master/docs/screenshot.jpg">
+	  <img src="/screenshot.jpg" style="width: 100%" />
+	</a>
       </div>
     </section>
 

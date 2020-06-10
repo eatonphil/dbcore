@@ -11,7 +11,7 @@ pagination, sorting, and JWT-based username/password authentication.
 
 ## Example
 
-![Screenshot of list view with pagination](screenshot.jpg)
+![Screenshot of list view with pagination](docs/screenshot.jpg)
 
 To build the todo app:
 

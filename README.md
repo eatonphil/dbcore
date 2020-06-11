@@ -7,7 +7,7 @@ REST API and React UI.
 The API specification supports basic CRUD operations with filtering,
 pagination, sorting, and JWT-based username/password authentication.
 
-[See the docs site for more detail.](https://eatonphil.github.io/dbcore/)
+[See the docs site for more detail.](http://www.dbcore.org)
 
 ## Example
 

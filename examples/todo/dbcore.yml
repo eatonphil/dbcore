@@ -11,6 +11,25 @@ api:
   routerPrefix: v1/
   auth:
     enabled: true
+  endpoints:
+    notes:
+      get:
+        filter: $session.is_admin or $session.user_id = notes.created_by or notes.is_public
+      put:
+        filter: $session.is_admin or $session.user_id = $request.created_by
+      delete:
+        filter: $session.is_admin or $session.user_id = $request.created_by
+      post:
+        filter: $session.exists
+    users:
+      get:
+        filter: $session.is_admin or $session.user_id = users.id
+      put:
+        filter: $session.is_admin or $session.user_id = $request.id
+      delete:
+        filter: $session.is_admin or $session.user_id = $request.id
+      post:
+        filter: $session.exists
   extra:
     repo: github.com/eatonphil/dbcore-todo
 

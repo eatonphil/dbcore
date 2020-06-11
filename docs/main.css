@@ -8,6 +8,10 @@ body {
     line-height: 1.5rem;
 }
 
+h1, h2 {
+    line-height: 2.2rem;
+}
+
 section {
     padding: 50px 0;
 }

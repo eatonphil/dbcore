@@ -47,6 +47,17 @@ type ApiAuthConfig() =
     member val Password = "password" with get, set
 
 
+type ApiEndpointMethodConfig() =
+    member val Filter = "" with get, set
+
+
+type ApiEndpointConfig() =
+    member val Get = ApiEndpointMethodConfig() with get, set
+    member val Put = ApiEndpointMethodConfig() with get, set
+    member val Post = ApiEndpointMethodConfig() with get, set
+    member val Delete = ApiEndpointMethodConfig() with get, set
+
+
 type ApiConfig() =
     interface IConfig with
         member val OutDir = "api" with get, set
@@ -54,6 +65,7 @@ type ApiConfig() =
 
     member val Auth = ApiAuthConfig() with get, set
     member val RouterPrefix = "" with get, set
+    member val Endpoints = Dictionary<string, ApiEndpointConfig>() with get, set
     member val Extra = Dictionary<string, obj>() with get, set
 
 

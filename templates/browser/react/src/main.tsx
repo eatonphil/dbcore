@@ -12,7 +12,7 @@ import { Home } from './views/Home';
 import { Login, Logout } from './views/Login';
 {{ end }}
 {{~ for table in tables ~}}
-import { {{ table.name | string.capitalize }}List } from './views/List_{{ table.name|string.capitalize }}Create';
+import { {{ table.name | string.capitalize }}List } from './views/{{ table.name|string.capitalize }}List';
 {{~ if table.primary_key.is_none
       continue
     end

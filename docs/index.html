@@ -92,19 +92,19 @@ database:
 
 api:
   template: go
-  outDir: go
+  outDir: $outDir
 
   # e.g. "v1/", for URLs
-  routerPrefix: router-prefix
+  routerPrefix: $router-prefix
 
-auth:
+  auth:
     # Disabled by default
     enabled: true
-    table: users
+    table: $users
     # Column for username field
-    username: username
+    username: $username
     # Column for password field, bcrypt hash is stored
-    password: password
+    password: $password
 
   extra:
     repo: $your-repo</code></pre>
@@ -123,7 +123,7 @@ address: :9090
 
 session:
   duration: 2hr
-  secret: my-secret-signing-key</code></pre>
+  secret: $my-secret-signing-key</code></pre>
 	<p>
 	  Clone the repo and run <code>make && make install</code>
 	  within the repo root. You will need Docker, only.

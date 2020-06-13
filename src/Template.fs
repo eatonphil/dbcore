@@ -1,6 +1,7 @@
 module Template
 
 open System.Diagnostics
+open System.Globalization
 open System.IO
 open System.Text.RegularExpressions
 
@@ -34,13 +35,33 @@ let private writeProjectToDisk(sourceDir: string, outDir: string, ctx: Context) 
 
         // Drop the SourceDir/ prefix
         let f = f.Substring(sourceDir.Length + 1)
-        // Handle the special case where files should be enumerated per table
-        let tableSubstitute = "DBCORE__tables__"
-        let fsAndCtxs =
-            if not (f.Contains tableSubstitute) then [(f, {| ctx with Table = ctx.Tables.[0] |})]
-            else [ for t in ctx.Tables do
-                       yield (f.Replace(tableSubstitute, t.Name),
-                              {| ctx with Table = t |}) ]
+
+        // Order by substring length descending
+        let pathTemplateExpansions =
+            let ti = CultureInfo("en-us", false).TextInfo
+            [
+                ("tables_capitalize",
+                 fun (path: string, sub: string) ->
+                     [ for t in ctx.Tables do
+                           yield (path.Replace(sub, ti.ToTitleCase(t.Name)),
+                                  {| ctx with Table = t |}) ]);
+                ("tables",
+                 fun (path: string, sub: string) ->
+                     [ for t in ctx.Tables do
+                           yield (path.Replace(sub, t.Name),
+                                  {| ctx with Table = t |}) ]);
+                ("",
+                 fun (path: string, sub: string) ->
+                     [(path, {| ctx with Table = ctx.Tables.[0] |})])
+            ]
+
+        let mutable fsAndCtxs = []
+        for (path, expand) in pathTemplateExpansions do
+            let escapedPath = sprintf "DBCORE__%s__" path
+            // Only expand once on the longest match.
+            if fsAndCtxs.Length = 0 && (f.Contains(escapedPath) || path = "") then
+                fsAndCtxs <- expand(f, escapedPath)
+
         for (f, ctx) in fsAndCtxs do
             let outFile = Path.Combine(outDir, f)
             printfn "[DEBUG] Generating: %s" outFile

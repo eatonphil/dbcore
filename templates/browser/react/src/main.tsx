@@ -12,12 +12,12 @@ import { Home } from './views/Home';
 import { Login, Logout } from './views/Login';
 {{ end }}
 {{~ for table in tables ~}}
-import { List{{ table.name | string.capitalize }} } from './views/List_{{ table.name }}';
+import { {{ table.name | string.capitalize }}List } from './views/List_{{ table.name|string.capitalize }}Create';
 {{~ if table.primary_key.is_none
       continue
     end
 ~}}
-import { Create{{ table.name | string.capitalize }} } from './views/Create_{{ table.name }}';
+import { {{ table.name | string.capitalize }}Create } from './views/{{ table.name|string.capitalize }}Create';
 {{~ end ~}}
 
 function App() {

@@ -5,7 +5,7 @@ type Column =
     {
         Name: string
         Type: string
-        GoType: string
+        Nullable: bool
         AutoIncrement: bool
     }
 
@@ -13,6 +13,7 @@ type Column =
 type Constraint =
     {
         Column: string
+        Type: string
         ForeignTable: string
         ForeignColumn: string
     }

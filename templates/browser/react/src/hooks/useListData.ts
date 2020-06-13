@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { fetch } from '../util/api';
+import { request } from '../api';
 
 export function useListData(endpoint: string) {
   const [cols, setCols] = React.useState([]);
@@ -20,7 +20,7 @@ export function useListData(endpoint: string) {
       const params = Object.entries({ offset, limit, filter, sortColumn, sortOrder })
                            .map(([key, value]) => `${key}=${value}`)
                            .join('&');
-      const rsp = await fetch(endpoint + '?' + params);
+      const rsp = await request(endpoint + '?' + params);
       if (rsp.error) {
         setRows([]);
         setCols([]);

@@ -18,6 +18,8 @@ import { {{ table.name | string.capitalize }}List } from './views/{{ table.name|
     end
 ~}}
 import { {{ table.name | string.capitalize }}Create } from './views/{{ table.name|string.capitalize }}Create';
+import { {{ table.name | string.capitalize }}Update } from './views/{{ table.name|string.capitalize }}Update';
+import { {{ table.name | string.capitalize }}Details } from './views/{{ table.name|string.capitalize }}Details';
 {{~ end ~}}
 
 function App() {
@@ -72,6 +74,12 @@ function App() {
             ~}}
             <Route exact path="/{{ table.name }}/create">
               <{{ table.name | string.capitalize}}Create />
+            </Route>
+            <Route exact path="/{{ table.name }}/_/:key/update">
+              <{{ table.name | string.capitalize}}Update />
+            </Route>
+            <Route exact path="/{{ table.name }}/_/:key">
+              <{{ table.name | string.capitalize}}Details />
             </Route>
             {{ end }}
           </Switch>

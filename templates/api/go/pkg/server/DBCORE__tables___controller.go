@@ -26,7 +26,6 @@ func (s Server) {{ table.name }}GetManyController(w http.ResponseWriter, r *http
 
 	{{ if table.name == api.auth.table }}
 	for i, _ := range result.Data {
-		// TODO: make sure this column actually exists
 		result.Data[i].C_{{ api.auth.password }} = "<REDACTED>"
 	}
 	{{ end }}
@@ -56,23 +55,58 @@ func (s Server) {{ table.name }}CreateController(w http.ResponseWriter, r *http.
 	}
 
 	{{ if table.name == api.auth.table }}
-	// TODO: make sure this column actually exists
 	body.C_{{ api.auth.password }} = "<REDACTED>"
 	{{ end }}
 
 	sendResponse(w, body)
 }
 
-{{ if table.primary_key.enabled }}
+{{~ if table.primary_key.value ~}}
+{{~
+  func toGoType
+    case $0
+      when "int"
+        "int"
+      when "bigint"
+        "int64"
+      when "text", "varchar", "char"
+        "string"
+      when "boolean"
+        "bool"
+      when "timestamp"
+        "time.Time"
+      else
+        "Unsupported PostgreSQL type: " + $0.type
+    end
+  end
+~}}
+
+func parse{{ table.name|string.capitalize }}Key(key string) {{ toGoType table.primary_key.value.type }} {
+{{~
+  case table.primary_key.value.type
+    when "text", "varchar", "char"
+      "\t return key"
+    when "int", "bigint"
+      "\t i, _ := strconv.ParseInt(key, 10, 64)\n\t return i"
+    when "timestamp"
+      "\t t, _ := time.Parse(time.RFC3339, key)\n\t return t"
+    when "boolean"
+      "\t return key == \"true\""
+    else
+      "\t return \"\""
+  end
+~}}
+}
+
 func (s Server) {{ table.name }}GetController(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	result, err := s.dao.{{ table.name|string.capitalize }}Get(ps.ByName("key"))
+	k := parse{{ table.name|string.capitalize }}Key(ps.ByName("key"))
+	result, err := s.dao.{{ table.name|string.capitalize }}Get(k)
 	if err != nil {
 		sendErrorResponse(w, err)
 		return
 	}
 
 	{{ if table.name == api.auth.table }}
-	// TODO: make sure this column actually exists
 	result.C_{{ api.auth.password }} = "<REDACTED>"
 	{{ end }}
 
@@ -88,27 +122,39 @@ func (s Server) {{ table.name }}UpdateController(w http.ResponseWriter, r *http.
 		return
 	}
 
-	result, err := s.dao.{{ table.name|string.capitalize }}Get(ps.ByName("key"))
+	k := parse{{ table.name|string.capitalize }}Key(ps.ByName("key"))
+	{{ if api.auth.enabled && table.name == api.auth.table }}
+	result, err := s.dao.{{ table.name|string.capitalize }}Get(k)
 	if err != nil {
 		sendErrorResponse(w, err)
 		return
 	}
 
-	{{ if api.auth.enabled && table.name == api.auth.table }}
 	body.C_{{ api.auth.password }} = result.C_{{ api.auth.password }}
 	{{ end }}
 
-	result, err = s.dao.{{ table.name|string.capitalize }}Update(ps.ByName("key"), body)
+	body.C_{{ table.primary_key.value.column }} = k
+	err = s.dao.{{ table.name|string.capitalize }}Update(k, body)
 	if err != nil {
 		sendErrorResponse(w, err)
 		return
 	}
 
 	{{ if table.name == api.auth.table }}
-	// TODO: make sure this column actually exists
-	result.C_{{ api.auth.password }} = "<REDACTED>"
+	body.C_{{ api.auth.password }} = "<REDACTED>"
 	{{ end }}
 
-	sendResponse(w, result)
+	sendResponse(w, body)
 }
-{{ end }}
+
+func (s Server) {{ table.name }}DeleteController(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	k := parse{{ table.name|string.capitalize }}Key(ps.ByName("key"))
+	err := s.dao.{{ table.name|string.capitalize }}Delete(k)
+	if err != nil {
+		sendErrorResponse(w, err)
+		return
+	}
+
+	sendResponse(w, struct{}{})
+}
+{{~ end ~}}

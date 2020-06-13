@@ -1,11 +1,12 @@
 import React from 'react';
+import { useHistory } from 'react-router-dom';
 
 import { Form } from '../components/Form';
 import { Heading } from '../components/Heading';
 import { Input } from '../components/Input';
 import { Link } from '../components/Link';
 import { List } from '../components/List';
-import { fetch } from '../util/api';
+import { request } from '../api';
 
 {{~
   func javascriptValueify
@@ -30,18 +31,19 @@ export function {{ table.name|string.capitalize }}Create() {
     {{~ end ~}}
   });
 
+  const history = useHistory();
   const [error, setError] = React.useState('');
   const handleSubmit = React.useCallback(async (e) => {
     e.preventDefault();
     setError('');
 
     try {
-      const rsp = await fetch('{{ table.name }}', {
+      const rsp = await request('{{ table.name }}', {
         {{~ for column in table.columns ~}}
         {{~ if column.auto_increment
               continue
             end ~}}
-        '{{ column.name }}': {{ javascriptValueify column }}(state['{{ column.name }}']),
+        '{{ column.name }}': {{ javascriptValueify column.type }}(state['{{ column.name }}']),
         {{~ end ~}}
       });
 
@@ -50,7 +52,7 @@ export function {{ table.name|string.capitalize }}Create() {
         return;
       }
 
-      window.location = '/{{ table.name }}';
+      history.push('/{{ table.name }}');
     } catch (e) {
       // Need the try-catch so we can return false here.
       console.error(e);

@@ -1,6 +1,7 @@
 package dao
 
 import (
+	"errors"
 	"regexp"
 
 	"github.com/jmoiron/sqlx"
@@ -9,6 +10,8 @@ import (
 	"github.com/xwb1989/sqlparser/dependency/querypb"
 	"github.com/xwb1989/sqlparser/dependency/sqltypes"
 )
+
+var ErrNotFound = errors.New("Not found")
 
 type Pagination struct {
 	Limit uint64

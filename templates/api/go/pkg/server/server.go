@@ -35,7 +35,7 @@ func (s Server) registerControllers() {
 	// Register {{table.name}} routes
 	s.router.GET("/{{ api.router_prefix }}{{ table.name }}", s.{{table.name}}GetManyController)
 	s.router.POST("/{{ api.router_prefix }}{{ table.name }}", s.{{table.name}}CreateController)
-	{{~ if table.primary_key.is_some ~}}
+	{{~ if table.primary_key.value ~}}
 	s.router.GET("/{{ api.router_prefix }}{{ table.name }}/:key", s.{{table.name}}GetController)
 	s.router.PUT("/{{ api.router_prefix }}{{ table.name }}/:key", s.{{table.name}}UpdateController)
 	s.router.DELETE("/{{ api.router_prefix }}{{ table.name }}/:key", s.{{table.name}}DeleteController)

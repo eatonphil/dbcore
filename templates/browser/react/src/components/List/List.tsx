@@ -1,8 +1,11 @@
 import React from 'react';
 
-import { useListData } from '../hooks/useListData';
+import { Header } from './Header';
+import { Row } from './Row';
+import { useListData } from '../../hooks/useListData';
 
-interface Props {
+interface Props<T> {
+  onRowClick?: (row: T) => void;
   endpoint: string;
 }
 
@@ -22,8 +25,21 @@ function PageButton({
   );
 }
 
-export function List(props: Props) {
-  const { cols, error, filter, offset, limit, rows, setFilter, setOffset, total } = useListData(props.endpoint);
+export function List<T>({
+  endpoint,
+  onRowClick,
+}: Props<T>) {
+  const {
+    cols,
+    error,
+    filter,
+    offset,
+    limit,
+    rows,
+    setFilter,
+    setOffset,
+    total,
+  } = useListData(endpoint);
 
   const pageInfo = (
     <div className="text-right text-gray-700 p-2">
@@ -61,8 +77,17 @@ export function List(props: Props) {
         <>
           {pageInfo}
           <div className={`grid grid-cols-${cols.length} border-l border-r border-t`}>
-            {cols.map(col => <div key={`header-${col}`} className="font-semibold text-gray-700 p-3 bg-gray-100 border-b uppercase text-sm">{col}</div>)}
-            {rows.map((row, i) => cols.map(col => <div key={`cell-${i}-${col}`} className="text-gray-700 p-3 border-b">{row[col]}</div>))}
+            {cols.map(col => (
+              <Header key={`header-${col}`} column={col} />
+            ))}
+            {rows.map((row, i) => (
+              <Row
+                onClick={onRowClick ? () => onRowClick(rows[i]) : null}
+                key={`row-${i}`}
+                row={row}
+                header={cols}
+              />
+            ))}
           </div>
           {pageInfo}
         </>

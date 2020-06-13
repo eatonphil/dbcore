@@ -78,19 +78,11 @@ type InformationSchema(cfg0: Config.DatabaseConfig) =
             while dr.Read() do
                 yield {
                     Column = dr.GetString(0)
+                    Type = ""
                     ForeignTable = dr.GetString(1)
                     ForeignColumn = dr.GetString(2)
                 }
         |]
-
-    let dbToGoType(typ: string, nullable: bool) : string =
-        match typ with
-        | "int" -> if nullable then "*int32" else "int32"
-        | "bigint" -> if nullable then "null.Int" else "int64"
-        | "text" | "varchar" | "char" -> if nullable then "null.String" else "string"
-        | "bool" -> if nullable then "null.Bool" else "bool"
-        | "timestamp" -> if nullable then "null.Time" else "time.Time"
-        | _ -> failwith ("Unsupported PostgreSQL type" + typ)
 
     let getTable(conn: IDbConnection, name: string) : Table =
         let columns =
@@ -120,7 +112,7 @@ type InformationSchema(cfg0: Config.DatabaseConfig) =
                     yield {
                         Name = dr.GetString(0)
                         Type = dr.GetString(1)
-                        GoType = dbToGoType(dr.GetString 1, dr.GetBoolean 2)
+                        Nullable = dr.GetBoolean(2)
                         AutoIncrement = dr.GetBoolean(3)
                     }
             |]
@@ -133,9 +125,12 @@ type InformationSchema(cfg0: Config.DatabaseConfig) =
 
         let primaryKey =
             let keys = getConstraints(conn, name, "PRIMARY KEY")
-            if keys.Length > 0
-                then Some (keys.[0])
-                else None
+            if keys.Length = 0 then None
+            else
+                let typ = [ for c in columns do
+                                if c.Name = keys.[0].Column then
+                                    yield c.Type ].[0]
+                Some ({ keys.[0] with Type = typ })
 
         {
             Name = name

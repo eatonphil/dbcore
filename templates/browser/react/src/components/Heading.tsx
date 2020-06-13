@@ -26,7 +26,7 @@ export function Heading({
       case 'lg':
         return <h3 className="text-lg font-semibold">{children}</h3>;
       case 'xl':
-        return <h2 className="text-xl font-semibold mb-4">{children}</h2>;
+        return <h2 className="text-xl font-semibold pb-4">{children}</h2>;
     }
   })();
 

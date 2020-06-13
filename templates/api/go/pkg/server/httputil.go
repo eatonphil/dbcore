@@ -38,21 +38,21 @@ func getBody(r *http.Request, obj interface{}) error {
 }
 
 func getFilterAndPageInfo(r *http.Request) (*dao.Filter, *dao.Pagination, error) {
-	getSingleUintParameter := func(param string) (uint64, error) {
+	getSingleUintParameter := func(param string, def uint64) (uint64, error) {
 		values, ok := r.URL.Query()[param]
 		if !ok || len(values) == 0 {
-			return 0, fmt.Errorf(`Expected "%s" parameter`, param)
+			return def, nil
 		}
 
 		return strconv.ParseUint(values[0], 10, 64)
 	}
 
-	limit, err := getSingleUintParameter("limit")
+	limit, err := getSingleUintParameter("limit", 25)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	offset, err := getSingleUintParameter("offset")
+	offset, err := getSingleUintParameter("offset", 0)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -63,6 +63,10 @@ func getFilterAndPageInfo(r *http.Request) (*dao.Filter, *dao.Pagination, error)
 	}
 
 	sortOrder := strings.ToLower(r.URL.Query().Get("sortOrder"))
+	if sortOrder == "" {
+		sortOrder = "desc"
+	}
+
 	if !(sortOrder == "asc" || sortOrder == "desc") {
 		return nil, nil, fmt.Errorf(`Expected "sortOrder" parameter to be "asc" or "desc"`)
 	}

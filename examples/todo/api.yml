@@ -1,6 +1,7 @@
 database:
-  dialect: mysql
-  dsn: root@/todo?sql_mode=ANSI
+  dialect: postgres
+  # dsn: root@/todo?sql_mode=ANSI
+  dsn: postgres://todo:todo@/todo?sslmode=disable
 
 address: localhost:9090
 

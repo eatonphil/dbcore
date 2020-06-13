@@ -1,8 +1,8 @@
 project: todo
 
 database:
-  # Switch this to 'mysql' for mysql
-  dialect: mysql
+  # dialect: mysql
+  dialect: postgres
   database: todo
   username: todo
   password: todo

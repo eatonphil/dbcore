@@ -2,7 +2,7 @@ import React from 'react';
 
 import { Form } from '../components/Form';
 import { Input } from '../components/Input';
-import { fetch } from '../util/api';
+import { request } from '../api';
 
 export function Logout() {
   React.useEffect(() => {
@@ -11,7 +11,7 @@ export function Logout() {
       // for some reason, but does need to be await-ed so the request
       // is not cancelled on navigation.
       try {
-        await fetch('session/stop', {
+        await request('session/stop', {
           method: 'POST',
           credentials: 'include',
         });
@@ -36,7 +36,7 @@ export function Login() {
     setError('');
 
     try {
-      const rsp = await fetch('session/start', {
+      const rsp = await request('session/start', {
         username,
         password,
       });

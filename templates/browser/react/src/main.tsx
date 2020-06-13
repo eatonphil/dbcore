@@ -64,14 +64,14 @@ function App() {
           
             {{~ for table in tables ~}}
             <Route exact path="/{{ table.name }}">
-              <List{{ table.name | string.capitalize}} />
+              <{{ table.name | string.capitalize}}List />
             </Route>
             {{~ if table.primary_key.is_none
                   continue
                 end
             ~}}
             <Route exact path="/{{ table.name }}/create">
-              <Create{{ table.name | string.capitalize}} />
+              <{{ table.name | string.capitalize}}Create />
             </Route>
             {{ end }}
           </Switch>

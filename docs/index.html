@@ -60,7 +60,7 @@
 	  Not happy with the built-in templates? Write your
 	  own to generate any kind of application you want.
 	</p>
-	<small>The built-in Todo application.</small>
+	<small>Screenshot of the examples/todo application.</small>
 	<a href="https://raw.githubusercontent.com/eatonphil/dbcore/master/docs/screenshot.jpg">
 	  <img src="screenshot.jpg" style="width: 100%" />
 	</a>
@@ -130,7 +130,7 @@ session:
 	</p>
 	<p>
 	  Then go to your project directory and run
-	  <code>dbcore</code> to generate the project. Finally
+	  <code>dbcore .</code> to generate the project. Finally
 	  run <code>go run cmd/main.go</code> to start the server.
 	</p>
       </div>
@@ -256,6 +256,20 @@ session:
 	</p>
 	<h3>Example</h3>
 	<pre><code>$ curl -X DELETE localhost:9090/v1/users/1</code></pre>
+      </div>
+    </section>
+
+    <section id="generating-a-typescript-react-ui">
+      <div class="container">
+        <header>
+          <h1>Generating a TypeScript/React UI</h1>
+	</header>
+        <p>
+          Using the same configuration as for the API, after
+          running <code>dbcore .</code> you can run <code>yarn
+          start</code> in <code>browser/</code> to start the
+          application at <code>http://localhost:9091</code>.
+	</p>
       </div>
     </section>
   </body>

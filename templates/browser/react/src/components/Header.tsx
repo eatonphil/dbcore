@@ -6,7 +6,7 @@ export function Header() {
   return (
     <div className="border-b p-4 mb-4">
       <nav className="container mx-auto flex">
-        <div className="text-lg lg:flex-grow">
+        <div className="text-lg flex-grow">
           <h1>
             <Link to="/">
               {{ project|string.capitalize }}

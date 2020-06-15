@@ -11,11 +11,11 @@ import (
 {{~
   func toGoType
     case $0.type
-      when "int"
+      when "int", "integer"
         if $0.nullable
           "null.Int"
         else
-          "int"
+          "int32"
         end
       when "bigint"
         if $0.nullable
@@ -68,7 +68,7 @@ SELECT
   {{~ for column in table.columns ~}}
   "{{ column.name }}",
   {{~ end ~}}
-  COUNT(1) OVER () AS __total
+  COUNT(1) AS __total
 FROM
   "{{table.name}}"
 %s
@@ -81,6 +81,7 @@ OFFSET %d`, where.filter, p.Order, p.Limit, p.Offset)
 	if err != nil {
 		return nil, err
 	}
+	defer rows.Close()
 
 	var response {{ table.name|string.capitalize }}PaginatedResponse
 	response.Data = []{{ table.name|string.capitalize }}{}
@@ -127,14 +128,14 @@ RETURNING {{ if table.primary_key.value }}{{ table.primary_key.value.column }}{{
 		continue
 		end ~}}body.C_{{ column.name }}{{ if !for.last }}, {{ end }}{{ end }})
 	return row.Scan(&body.C_{{ if table.primary_key.value }}{{ table.primary_key.value.column }}{{ else }}{{ table.columns[0].name }}{{ end }})
-	{{~ else if database.dialect == "mysql" ~}}
+	{{~ else if database.dialect == "mysql" || database.dialect == "sqlite" ~}}
 	stmt, err := d.db.Prepare(query)
 	if err != nil {
 		return err
 	}
 
-	{{ if database.dialect == "mysql" }}var res sql.Result{{ end }}
-	{{ if database.dialect == "mysql" }}res{{ else }}_{{ end }}, err = stmt.Exec(
+	{{ if database.dialect == "mysql" || database.dialect == "sqlite" }}var res sql.Result{{ end }}
+	{{ if database.dialect == "mysql" || database.dialect == "sqlite" }}res{{ else }}_{{ end }}, err = stmt.Exec(
 		{{~ for column in table.columns ~}}
 		{{~ if column.auto_increment
 		      continue
@@ -145,10 +146,12 @@ RETURNING {{ if table.primary_key.value }}{{ table.primary_key.value.column }}{{
 	}
 
 	{{~ if table.primary_key.value ~}}
-	body.C_{{ table.primary_key.value.column }}, err = res.LastInsertId()
+	id, err := res.LastInsertId()
 	if err != nil {
 		return err
 	}
+
+	body.C_{{ table.primary_key.value.column }} = {{ toGoType table.primary_key.value }}(id)
 	{{~ end ~}}
 	return nil
 	{{~ end ~}}

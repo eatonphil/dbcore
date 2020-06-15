@@ -1,7 +1,6 @@
 database:
-  dialect: postgres
-  # dsn: root@/todo?sql_mode=ANSI
-  dsn: postgres://todo:todo@/todo?sslmode=disable
+  dialect: sqlite3
+  dsn: file:../todo.db
 
 address: localhost:9090
 

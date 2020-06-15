@@ -14,6 +14,8 @@ import (
 	_ "github.com/lib/pq"
 	{{ else if database.dialect == "mysql" }}
 	_ "github.com/go-sql-driver/mysql"
+	{{ else if database.dialect == "sqlite" }}
+	_ "github.com/mattn/go-sqlite3"
 	{{ end }}
 	"github.com/sirupsen/logrus"
 

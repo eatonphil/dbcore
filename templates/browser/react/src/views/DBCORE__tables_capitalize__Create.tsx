@@ -11,7 +11,7 @@ import { request } from '../api';
 {{~
   func javascriptValueify
     case $0
-      when "integer", "bigint", "smallint", "decimal", "numeric", "real", "double precision"
+      when "integer", "int", "bigint", "smallint", "decimal", "numeric", "real", "double precision"
         "Number"
       when "boolean"
         "Boolean"

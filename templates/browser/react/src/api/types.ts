@@ -1,7 +1,7 @@
 {{~
   func toTypeScriptType
     case $0
-      when "integer", "bigint", "smallint", "decimal", "numeric", "real", "double precision"
+      when "integer", "int", "bigint", "smallint", "decimal", "numeric", "real", "double precision"
         "number"
       when "boolean"
         "boolean"

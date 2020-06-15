@@ -8,6 +8,6 @@ jobs:
       - run: dotnet publish -c release
 workflows:
   version: 2
-  build_and_test:
+  build:
     jobs:
       - build

@@ -10,4 +10,5 @@ build:
 		mcr.microsoft.com/dotnet/sdk:5.0 dotnet publish -c release
 
 install:
-	ln -s ./bin/release/netcoreapp3.0/linux-x64/publish/dbcore /usr/local/bin
+	rm /usr/local/bin/dbcore
+	ln -s $(CURDIR)/bin/release/netcoreapp3.0/linux-x64/publish/dbcore /usr/local/bin

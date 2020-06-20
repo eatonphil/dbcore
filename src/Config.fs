@@ -70,6 +70,11 @@ type ApiConfig() =
     member val Endpoints = Dictionary<string, ApiEndpointConfig>() with get, set
     member val Extra = Dictionary<string, obj>() with get, set
 
+    member this.Validate() =
+        // TODO: should probably turn validation into a schema per template
+        if (this :> IConfig).Template = "go" && not (this.Extra.ContainsKey "repo")
+            then failwith "Repo is required: `api.extra.repo: $repo`"
+
 
 type BrowserConfig() =
     interface IConfig with
@@ -92,6 +97,10 @@ type Config() =
     member val Browser = BrowserConfig() with get, set
     member val Custom : array<CustomConfig> = [| |] with get, set
 
+    member this.Validate() =
+        if this.Project = "" then failwith "Project name is required: `project: $name`"
+
+        this.Api.Validate()
 
 let GetConfig(f: string) : Config =
     use file = new FileStream(f, FileMode.Open, FileAccess.Read)
@@ -102,5 +111,4 @@ let GetConfig(f: string) : Config =
             .Build()
     let config = deserializer.Deserialize<Config>(stream)
 
-    // TODO: validate config
     config

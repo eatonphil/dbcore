@@ -7,8 +7,8 @@ let main (args: string []): int =
                          then args.[0]
                          else failwith "Expected project directory"
 
-    // TODO: validate file
     let cfg = Config.GetConfig(Path.Combine(projectDir, "dbcore.yml"))
+    cfg.Validate()
 
     if cfg.Database.Dialect = "sqlite" then
         cfg.Database.Database <- Path.Combine(projectDir, cfg.Database.Database)

@@ -24,7 +24,7 @@ jobs:
           command: go build cmd/main.go
           working_directory: ~/todo/api
 
-  test_example_go_api:
+  test_example_react_browser:
     docker:
       - image: node:lts
     steps:

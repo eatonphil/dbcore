@@ -6,10 +6,6 @@ interface Props {
   children: React.ReactNode;
 }
 
-function H(size) {
-  
-}
-
 export function Heading({
   actions,
   size,

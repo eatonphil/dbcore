@@ -62,12 +62,12 @@ func getFilterAndPageInfo(r *http.Request) (*dao.Filter, *dao.Pagination, error)
 		return nil, nil, fmt.Errorf(`Expected "sortColumn" parameter`)
 	}
 
-	sortOrder := strings.ToLower(r.URL.Query().Get("sortOrder"))
+	sortOrder := strings.ToUpper(r.URL.Query().Get("sortOrder"))
 	if sortOrder == "" {
-		sortOrder = "desc"
+		sortOrder = "DESC"
 	}
 
-	if !(sortOrder == "asc" || sortOrder == "desc") {
+	if !(sortOrder == "ASC" || sortOrder == "DESC") {
 		return nil, nil, fmt.Errorf(`Expected "sortOrder" parameter to be "asc" or "desc"`)
 	}
 

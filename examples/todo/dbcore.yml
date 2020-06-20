@@ -1,11 +1,8 @@
 project: todo
 
 database:
-  # dialect: mysql
-  dialect: postgres
-  database: todo
-  username: todo
-  password: todo
+  dialect: sqlite
+  database: todo.db
 
 api:
   routerPrefix: v1/

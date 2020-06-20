@@ -11,11 +11,11 @@ import (
 {{~
   func toGoType
     case $0.type
-      when "int"
+      when "int", "integer"
         if $0.nullable
           "null.Int"
         else
-          "int"
+          "int32"
         end
       when "bigint"
         if $0.nullable
@@ -66,9 +66,11 @@ func (d DAO) {{ table.name|string.capitalize }}GetMany(where *Filter, p Paginati
 	query := fmt.Sprintf(`
 SELECT
   {{~ for column in table.columns ~}}
-  "{{ column.name }}",
+  "{{ column.name }}"{{ if !for.last || database.dialect != "sqlite" }},{{ end }}
   {{~ end ~}}
-  COUNT(1) OVER () AS __total
+  {{~ if database.dialect != "sqlite" ~}}
+  COUNT(1) OVER() AS __total
+  {{~ end ~}}
 FROM
   "{{table.name}}"
 %s
@@ -79,25 +81,52 @@ OFFSET %d`, where.filter, p.Order, p.Limit, p.Offset)
 	d.logger.Debug(query)
 	rows, err := d.db.Queryx(query, where.args...)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Error in query: %s", err)
 	}
+	defer rows.Close()
 
 	var response {{ table.name|string.capitalize }}PaginatedResponse
 	response.Data = []{{ table.name|string.capitalize }}{}
 	for rows.Next() {
-		var row struct {
-			{{ table.name|string.capitalize }}
-			Total uint64 `db:"__total"`
-		}
-		err := rows.StructScan(&row)
-		if err != nil {
+		if err := rows.Err(); err != nil {
 			return nil, err
 		}
 
+		var row struct {
+			{{ table.name|string.capitalize }}
+			{{~ if database.dialect != "sqlite" ~}}
+			Total uint64 `db:"__total"`
+			{{~ end ~}}
+		}
+		err := rows.StructScan(&row)
+		if err != nil {
+			return nil, fmt.Errorf("Error scanning struct: %s", err)
+		}
+
+		{{~ if database.dialect != "sqlite" ~}}
 		response.Total = row.Total
+		{{~ end ~}}
 		response.Data = append(response.Data, row.{{ table.name|string.capitalize }})
 	}
 
+	{{~ if database.dialect == "sqlite" ~}}
+	query = fmt.Sprintf(`
+SELECT
+  COUNT(1)
+FROM
+  "{{table.name}}"
+%s
+ORDER BY
+  %s`, where.filter, p.Order)
+	d.logger.Debug(query)
+	row := d.db.QueryRowx(query, where.args...)
+	err = row.Scan(&response.Total)
+	if err != nil {
+		return nil, fmt.Errorf("Error fetching total: %s", err, query)
+	}
+	{{~ end ~}}
+
+	err = rows.Err()
 	return &response, err
 }
 
@@ -127,14 +156,14 @@ RETURNING {{ if table.primary_key.value }}{{ table.primary_key.value.column }}{{
 		continue
 		end ~}}body.C_{{ column.name }}{{ if !for.last }}, {{ end }}{{ end }})
 	return row.Scan(&body.C_{{ if table.primary_key.value }}{{ table.primary_key.value.column }}{{ else }}{{ table.columns[0].name }}{{ end }})
-	{{~ else if database.dialect == "mysql" ~}}
+	{{~ else if database.dialect == "mysql" || database.dialect == "sqlite" ~}}
 	stmt, err := d.db.Prepare(query)
 	if err != nil {
 		return err
 	}
 
-	{{ if database.dialect == "mysql" }}var res sql.Result{{ end }}
-	{{ if database.dialect == "mysql" }}res{{ else }}_{{ end }}, err = stmt.Exec(
+	{{ if database.dialect == "mysql" || database.dialect == "sqlite" }}var res sql.Result{{ end }}
+	{{ if database.dialect == "mysql" || database.dialect == "sqlite" }}res{{ else }}_{{ end }}, err = stmt.Exec(
 		{{~ for column in table.columns ~}}
 		{{~ if column.auto_increment
 		      continue
@@ -145,10 +174,12 @@ RETURNING {{ if table.primary_key.value }}{{ table.primary_key.value.column }}{{
 	}
 
 	{{~ if table.primary_key.value ~}}
-	body.C_{{ table.primary_key.value.column }}, err = res.LastInsertId()
+	id, err := res.LastInsertId()
 	if err != nil {
 		return err
 	}
+
+	body.C_{{ table.primary_key.value.column }} = {{ toGoType table.primary_key.value }}(id)
 	{{~ end ~}}
 	return nil
 	{{~ end ~}}

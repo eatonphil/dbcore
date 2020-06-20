@@ -65,8 +65,8 @@ func (s Server) {{ table.name }}CreateController(w http.ResponseWriter, r *http.
 {{~
   func toGoType
     case $0
-      when "int"
-        "int"
+      when "int", "integer"
+        "int32"
       when "bigint"
         "int64"
       when "text", "varchar", "char"
@@ -76,7 +76,7 @@ func (s Server) {{ table.name }}CreateController(w http.ResponseWriter, r *http.
       when "timestamp"
         "time.Time"
       else
-        "Unsupported PostgreSQL type: " + $0.type
+        "Unsupported PostgreSQL type: " + $0
     end
   end
 ~}}
@@ -86,7 +86,9 @@ func parse{{ table.name|string.capitalize }}Key(key string) {{ toGoType table.pr
   case table.primary_key.value.type
     when "text", "varchar", "char"
       "\t return key"
-    when "int", "bigint"
+    when "int", "integer"
+      "\t i, _ := strconv.ParseInt(key, 10, 32)\n\t return int32(i)"
+    when "bigint"
       "\t i, _ := strconv.ParseInt(key, 10, 64)\n\t return i"
     when "timestamp"
       "\t t, _ := time.Parse(time.RFC3339, key)\n\t return t"

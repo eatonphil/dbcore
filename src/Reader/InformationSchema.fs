@@ -111,7 +111,7 @@ type InformationSchema(cfg0: Config.DatabaseConfig) =
                 while dr.Read() do
                     yield {
                         Name = dr.GetString(0)
-                        Type = dr.GetString(1)
+                        Type = dr.GetString(1).ToLower()
                         Nullable = dr.GetBoolean(2)
                         AutoIncrement = dr.GetBoolean(3)
                     }
@@ -130,7 +130,7 @@ type InformationSchema(cfg0: Config.DatabaseConfig) =
                 let typ = [ for c in columns do
                                 if c.Name = keys.[0].Column then
                                     yield c.Type ].[0]
-                Some ({ keys.[0] with Type = typ })
+                Some ({ keys.[0] with Type = typ.ToLower() })
 
         {
             Name = name

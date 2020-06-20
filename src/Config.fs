@@ -23,6 +23,7 @@ type DatabaseConfig() =
                 match this.Dialect with
                     | "postgres" -> "public"
                     | "mysql" -> this.Database
+                    | "sqlite" -> ""
                     | _ -> failwith ("database.schema must be set for unknown dialect: " + this.Dialect)
 
     member this.Port
@@ -31,6 +32,7 @@ type DatabaseConfig() =
                 match this.Dialect with
                     | "postgres" -> "5432"
                     | "mysql" -> "3306"
+                    | "sqlite" -> ""
                     | _ -> failwith ("database.port must be set for unknown dialect: " + this.Dialect)
         and set(value: string) = port <- value
 

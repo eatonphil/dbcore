@@ -5,13 +5,12 @@ import { Form } from '../components/Form';
 import { Heading } from '../components/Heading';
 import { Input } from '../components/Input';
 import { Link } from '../components/Link';
-import { List } from '../components/List';
 import { request } from '../api';
 
 {{~
   func javascriptValueify
     case $0
-      when "integer", "bigint", "smallint", "decimal", "numeric", "real", "double precision"
+      when "integer", "int", "bigint", "smallint", "decimal", "numeric", "real", "double precision"
         "Number"
       when "boolean"
         "Boolean"
@@ -49,16 +48,14 @@ export function {{ table.name|string.capitalize }}Create() {
 
       if (rsp.error) {
         setError(rsp.error);
-        return;
+        return false;
       }
 
       history.push('/{{ table.name }}');
-    } catch (e) {
-      // Need the try-catch so we can return false here.
-      console.error(e);
+    } finally {
       return false;
     }
-  });
+  }, [history]);
 
   return (
     <>
@@ -74,7 +71,7 @@ export function {{ table.name|string.capitalize }}Create() {
             label="{{ column.name }}"
             id="{{ column.name }}"
             value={state['{{ column.name }}']}
-            onChange={(e) => {
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
               // e.target.value is not available within the setState callback, so copy it.
               // https://duncanleung.com/fixing-react-warning-synthetic-events-in-setstate/
               const { value } = e.target;

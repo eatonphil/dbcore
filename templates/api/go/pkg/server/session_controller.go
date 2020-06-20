@@ -26,7 +26,7 @@ func (s Server) SessionStartController(w http.ResponseWriter, r *http.Request, _
 		return
 	}
 
-	q := fmt.Sprintf("{{ api.auth.username }} = '%s'", userPass.Username)
+	q := fmt.Sprintf(`{{ api.auth.username }} = '%s'`, userPass.Username)
 	filter, err := dao.ParseFilter(q)
 	if err != nil {
 		s.logger.Debugf("Error while parsing {{ api.auth.username }}: %s", err)

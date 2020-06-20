@@ -2,3 +2,4 @@ browser
 go.mod
 go.sum
 api
+todo.db

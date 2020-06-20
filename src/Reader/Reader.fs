@@ -6,6 +6,7 @@ type Reader(cfg0: Config.DatabaseConfig) =
 
     member this.GetTables() : Database.Table[] =
         match cfg.Dialect with
+            | "sqlite" -> SQLite(cfg).GetTables()
             | "mysql" | "postgres" -> InformationSchema(cfg).GetTables()
             | d -> failwith ("Unsupported SQL dialect: " + d)
 

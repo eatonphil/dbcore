@@ -12,7 +12,7 @@ export function {{ table.name|string.capitalize }}Details() {
   );
 
   const [loaded, setLoaded] = React.useState(false);
-  const [state, setState] = React.useState({
+  const [state, setState] = React.useState<{ [key: string]: string }>({
     {{~ for column in table.columns ~}}
     {{~ if column.auto_increment
           continue

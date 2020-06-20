@@ -5,7 +5,6 @@ import { Form } from '../components/Form';
 import { Heading } from '../components/Heading';
 import { Input } from '../components/Input';
 import { Link } from '../components/Link';
-import { List } from '../components/List';
 import { request } from '../api';
 
 {{~
@@ -22,7 +21,7 @@ import { request } from '../api';
 ~}}
 
 export function {{ table.name|string.capitalize }}Update() {
-  const [state, setState] = React.useState({
+  const [state, setState] = React.useState<{ [key: string]: string }>({
     {{~ for column in table.columns ~}}
     {{~ if column.auto_increment
           continue
@@ -33,6 +32,7 @@ export function {{ table.name|string.capitalize }}Update() {
 
   const history = useHistory();
   const [error, setError] = React.useState('');
+  const { params: { key } } = useRouteMatch();
   const handleSubmit = React.useCallback(async (e) => {
     e.preventDefault();
     setError('');
@@ -49,18 +49,15 @@ export function {{ table.name|string.capitalize }}Update() {
 
       if (rsp.error) {
         setError(rsp.error);
-        return;
+        return false;
       }
 
       history.push(`/{{ table.name }}/_/${key}`);
-    } catch (e) {
-      // Need the try-catch so we can return false here.
-      console.error(e);
+    } finally {
       return false;
     }
-  });
+  }, [key]);
 
-  const { params: { key } } = useRouteMatch();
   const [loaded, setLoaded] = React.useState(false);
   React.useEffect(function() {
     async function fetchRow() {
@@ -97,11 +94,11 @@ export function {{ table.name|string.capitalize }}Update() {
             label="{{ column.name }}"
             id="{{ column.name }}"
             value={state['{{ column.name }}']}
-            onChange={(e) => {
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
               // e.target.value is not available within the setState callback, so copy it.
               // https://duncanleung.com/fixing-react-warning-synthetic-events-in-setstate/
               const { value } = e.target;
-              setState(s => ({ ...s, ['{{ column.name }}']: value }))
+              setState((s: { [key: string]: string }) => ({ ...s, ['{{ column.name }}']: value }))
             }}
           />
         </div>

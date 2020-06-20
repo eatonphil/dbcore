@@ -43,17 +43,15 @@ export function Login() {
 
       if (rsp.error) {
         setError(rsp.error);
-        return;
+        return false;
       }
 
       const params = new URLSearchParams(window.location.search);
       window.location.href = params.get('return') || '/';
-    } catch (e) {
-      // Need the try-catch so we can return false here.
-      console.error(e);
+    } finally {
       return false;
     }
-  });
+  }, [setError]);
 
   return (
     <div className="flex justify-center">
@@ -64,7 +62,7 @@ export function Login() {
               label="Username"
               id="username"
               value={username}
-              onChange={(e) => setUsername(e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setUsername(e.target.value)}
             />
           </div>
           <div className="mb-4">
@@ -73,7 +71,7 @@ export function Login() {
               id="password"
               value={password}
               type="password"
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
             />
           </div>
         </Form>

@@ -3,7 +3,7 @@ import { Link as RRLink } from 'react-router-dom';
 
 interface Props {
   children: React.ReactNode;
-  className: string;
+  className?: string;
   to: string;
 }
 

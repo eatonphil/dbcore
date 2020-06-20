@@ -1,6 +1,6 @@
 import React from 'react';
 
-interface Props extends HTMLInputElement {
+interface Props extends React.HTMLProps<HTMLInputElement> {
   label: string;
 }
 

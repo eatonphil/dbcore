@@ -2,9 +2,9 @@ import React from 'react';
 
 import { request } from '../api';
 
-export function useListData(endpoint: string) {
-  const [cols, setCols] = React.useState([]);
-  const [rows, setRows] = React.useState([]);
+export function useListData<T>(endpoint: string) {
+  const [cols, setCols] = React.useState<(keyof T)[]>([]);
+  const [rows, setRows] = React.useState<T[]>([]);
   const [total, setTotal] = React.useState(0);
   const [error, setError] = React.useState('');
   const [offset, setOffset] = React.useState(0);
@@ -31,7 +31,7 @@ export function useListData(endpoint: string) {
 
       setTotal(rsp.total);
       setRows(rsp.data);
-      setCols(rsp.data.length ? Object.keys(rsp.data[0]) : []);
+      setCols((rsp.data.length ? Object.keys(rsp.data[0]) : []) as (keyof T)[]);
     }
 
     fetchRows();
@@ -48,5 +48,9 @@ export function useListData(endpoint: string) {
     filter,
     setFilter,
     total,
+    sortColumn,
+    setSortColumn,
+    sortOrder,
+    setSortOrder,
   };
 }

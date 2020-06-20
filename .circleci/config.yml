@@ -33,7 +33,7 @@ jobs:
       - attach_workspace:
           at: ~/
       - run:
-          command: sh ./scripts/post-generate.sh && yarn build
+          command: sh ./scripts/post-generate.sh && yarn typecheck && yarn build
           working_directory: ~/todo/browser
 workflows:
   version: 2

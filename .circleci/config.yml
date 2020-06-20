@@ -22,6 +22,8 @@ jobs:
       - checkout
       - attach_workspace:
           at: /tmp/
+      # CircleCI is weird.
+      - run: rm -rf templates
       - run: sh ./scripts/post-generate.sh
       - run: go build cmd/main.go
 

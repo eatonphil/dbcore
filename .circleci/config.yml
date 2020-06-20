@@ -6,8 +6,8 @@ jobs:
     steps:
       - checkout
       - run: dotnet publish -c release
-      - run: ln -s ./bin/release/netcoreapp3.0/linux-x64/publish/dbcore /usr/local/bin
-      - run: dbcore examples/todo
+      - run: ln -s ./bin/release/netcoreapp3.0/linux-x64/publish/dbcore /dbcore
+      - run: /dbcore examples/todo
       - persist_to_workspace:
           root: ./examples
           paths:

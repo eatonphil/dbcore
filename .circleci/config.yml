@@ -17,24 +17,26 @@ jobs:
   test_example_go_api:
     docker:
       - image: golang:1
+    working_directory: ~/todo/api
     steps:
       - checkout
       - attach_workspace:
           at: ~/
-      - run:
-          command: sh ./scripts/post-generate.sh && go build cmd/main.go
-          working_directory: ~/todo/api
+      - run: sh ./scripts/post-generate.sh
+      - run: go build cmd/main.go
 
   test_example_react_browser:
     docker:
       - image: node:lts
+    working_directory: ~/todo/browser
     steps:
       - checkout
       - attach_workspace:
           at: ~/
-      - run:
-          command: sh ./scripts/post-generate.sh && yarn typecheck && yarn build
-          working_directory: ~/todo/browser
+      - run: sh ./scripts/post-generate.sh
+      - run: yarn typecheck
+      - run: yarn build
+
 workflows:
   version: 2
   build:

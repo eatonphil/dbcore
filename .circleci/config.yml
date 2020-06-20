@@ -12,27 +12,27 @@ jobs:
       - persist_to_workspace:
           root: ./examples
           paths:
-            - todo/*
+            - todo
 
   test_example_go_api:
     docker:
       - image: golang:1
-    working_directory: ~/todo/api
+    working_directory: /tmp/todo/api
     steps:
       - checkout
       - attach_workspace:
-          at: ~/
+          at: /tmp/
       - run: sh ./scripts/post-generate.sh
       - run: go build cmd/main.go
 
   test_example_react_browser:
     docker:
       - image: node:lts
-    working_directory: ~/todo/browser
+    working_directory: /tmp/todo/browser
     steps:
       - checkout
       - attach_workspace:
-          at: ~/
+          at: /tmp/
       - run: sh ./scripts/post-generate.sh
       - run: yarn typecheck
       - run: yarn build

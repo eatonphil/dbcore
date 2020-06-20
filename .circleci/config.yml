@@ -6,7 +6,7 @@ jobs:
     steps:
       - checkout
       - run: dotnet publish -c release
-      - run: apt-get install sqlite3
+      - run: apt-get update -y && apt-get install -y sqlite3
       - run: sqlite3 ./examples/todo/todo.db < ./examples/todo/sql/sqlite/schema.sql
       - run: ./bin/release/netcoreapp3.0/linux-x64/publish/dbcore ./examples/todo
       - persist_to_workspace:

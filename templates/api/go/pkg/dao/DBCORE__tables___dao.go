@@ -66,9 +66,11 @@ func (d DAO) {{ table.name|string.capitalize }}GetMany(where *Filter, p Paginati
 	query := fmt.Sprintf(`
 SELECT
   {{~ for column in table.columns ~}}
-  "{{ column.name }}",
+  "{{ column.name }}"{{ if !for.last || database.dialect != "sqlite" }},{{ end }}
   {{~ end ~}}
-  COUNT(1) AS __total
+  {{~ if database.dialect != "sqlite" ~}}
+  COUNT(1) OVER() AS __total
+  {{~ end ~}}
 FROM
   "{{table.name}}"
 %s
@@ -79,26 +81,52 @@ OFFSET %d`, where.filter, p.Order, p.Limit, p.Offset)
 	d.logger.Debug(query)
 	rows, err := d.db.Queryx(query, where.args...)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Error in query: %s", err)
 	}
 	defer rows.Close()
 
 	var response {{ table.name|string.capitalize }}PaginatedResponse
 	response.Data = []{{ table.name|string.capitalize }}{}
 	for rows.Next() {
-		var row struct {
-			{{ table.name|string.capitalize }}
-			Total uint64 `db:"__total"`
-		}
-		err := rows.StructScan(&row)
-		if err != nil {
+		if err := rows.Err(); err != nil {
 			return nil, err
 		}
 
+		var row struct {
+			{{ table.name|string.capitalize }}
+			{{~ if database.dialect != "sqlite" ~}}
+			Total uint64 `db:"__total"`
+			{{~ end ~}}
+		}
+		err := rows.StructScan(&row)
+		if err != nil {
+			return nil, fmt.Errorf("Error scanning struct: %s", err)
+		}
+
+		{{~ if database.dialect != "sqlite" ~}}
 		response.Total = row.Total
+		{{~ end ~}}
 		response.Data = append(response.Data, row.{{ table.name|string.capitalize }})
 	}
 
+	{{~ if database.dialect == "sqlite" ~}}
+	query = fmt.Sprintf(`
+SELECT
+  COUNT(1)
+FROM
+  "{{table.name}}"
+%s
+ORDER BY
+  %s`, where.filter, p.Order)
+	d.logger.Debug(query)
+	row := d.db.QueryRowx(query, where.args...)
+	err = row.Scan(&response.Total)
+	if err != nil {
+		return nil, fmt.Errorf("Error fetching total: %s", err, query)
+	}
+	{{~ end ~}}
+
+	err = rows.Err()
 	return &response, err
 }
 

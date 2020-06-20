@@ -22,7 +22,7 @@ jobs:
       - attach_workspace:
           at: ~/
       - run:
-          command: go build cmd/main.go
+          command: ./scripts/post-generate.sh && go build cmd/main.go
           working_directory: ~/todo/api
 
   test_example_react_browser:
@@ -33,7 +33,7 @@ jobs:
       - attach_workspace:
           at: ~/
       - run:
-          command: yarn build
+          command: ./scripts/post-generate.sh && yarn build
           working_directory: ~/todo/browser
 workflows:
   version: 2

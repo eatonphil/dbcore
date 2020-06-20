@@ -50,7 +50,7 @@ $ yarn start
 ## Dependencies
 
 * Go
-* PostgreSQL or MySQL
+* PostgreSQL, MySQL or SQLite3
 * .NET Core
 
 ## Restrictions
@@ -58,7 +58,6 @@ $ yarn start
 There are a bunch of restrictions! Here are a few known ones. You will
 discover more and you may fix them!
 
-* Only PostgreSQL and MySQL
 * Only tables supported (i.e. no views)
 * Only single-column foreign keys supported
 * Only Go API, React UI templates provided

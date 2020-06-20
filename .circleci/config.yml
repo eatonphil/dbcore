@@ -6,7 +6,7 @@ jobs:
     steps:
       - checkout
       - run: dotnet publish -c release
-      - run: ./bin/release/netcoreapp3.0/linux-x64/publish/dbcore examples/todo
+      - run: ./bin/release/netcoreapp3.0/linux-x64/publish/dbcore ./examples/todo
       - persist_to_workspace:
           root: ./examples
           paths:

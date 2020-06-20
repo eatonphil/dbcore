@@ -16,7 +16,7 @@ jobs:
 
   test_example_go_api:
     docker:
-      - image: golang:1.15
+      - image: golang:1
     steps:
       - checkout
       - attach_workspace:

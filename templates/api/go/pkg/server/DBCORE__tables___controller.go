@@ -18,7 +18,7 @@ func (s Server) {{ table.name }}GetManyController(w http.ResponseWriter, r *http
 		return
 	}
 
-	result, err := s.dao.{{ table.name|string.capitalize }}GetMany(filter, *pageInfo)
+	result, err := s.dao.{{ table.name|dbcore_capitalize }}GetMany(filter, *pageInfo)
 	if err != nil {
 		sendErrorResponse(w, err)
 		return
@@ -34,7 +34,7 @@ func (s Server) {{ table.name }}GetManyController(w http.ResponseWriter, r *http
 }
 
 func (s Server) {{ table.name }}CreateController(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	var body dao.{{ table.name|string.capitalize }}
+	var body dao.{{ table.name|dbcore_capitalize }}
 	err := getBody(r, &body)
 	if err != nil {
 		s.logger.Debug("Expected valid JSON, got: %s", err)
@@ -48,7 +48,7 @@ func (s Server) {{ table.name }}CreateController(w http.ResponseWriter, r *http.
 	body.C_{{ api.auth.password }} = string(hash)
 	{{ end }}
 
-	err = s.dao.{{ table.name|string.capitalize }}Insert(&body)
+	err = s.dao.{{ table.name|dbcore_capitalize }}Insert(&body)
 	if err != nil {
 		sendErrorResponse(w, err)
 		return
@@ -73,7 +73,7 @@ func (s Server) {{ table.name }}CreateController(w http.ResponseWriter, r *http.
         "string"
       when "boolean"
         "bool"
-      when "timestamp"
+      when "timestamp", "timestamp with time zone"
         "time.Time"
       else
         "Unsupported PostgreSQL type: " + $0
@@ -81,7 +81,7 @@ func (s Server) {{ table.name }}CreateController(w http.ResponseWriter, r *http.
   end
 ~}}
 
-func parse{{ table.name|string.capitalize }}Key(key string) {{ toGoType table.primary_key.value.type }} {
+func parse{{ table.name|dbcore_capitalize }}Key(key string) {{ toGoType table.primary_key.value.type }} {
 {{~
   case table.primary_key.value.type
     when "text", "varchar", "char"
@@ -90,7 +90,7 @@ func parse{{ table.name|string.capitalize }}Key(key string) {{ toGoType table.pr
       "\t i, _ := strconv.ParseInt(key, 10, 32)\n\t return int32(i)"
     when "bigint"
       "\t i, _ := strconv.ParseInt(key, 10, 64)\n\t return i"
-    when "timestamp"
+    when "timestamp", "timestamp with time zone"
       "\t t, _ := time.Parse(time.RFC3339, key)\n\t return t"
     when "boolean"
       "\t return key == \"true\""
@@ -101,8 +101,8 @@ func parse{{ table.name|string.capitalize }}Key(key string) {{ toGoType table.pr
 }
 
 func (s Server) {{ table.name }}GetController(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	k := parse{{ table.name|string.capitalize }}Key(ps.ByName("key"))
-	result, err := s.dao.{{ table.name|string.capitalize }}Get(k)
+	k := parse{{ table.name|dbcore_capitalize }}Key(ps.ByName("key"))
+	result, err := s.dao.{{ table.name|dbcore_capitalize }}Get(k)
 	if err != nil {
 		sendErrorResponse(w, err)
 		return
@@ -116,7 +116,7 @@ func (s Server) {{ table.name }}GetController(w http.ResponseWriter, r *http.Req
 }
 
 func (s Server) {{ table.name }}UpdateController(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	var body dao.{{ table.name|string.capitalize }}
+	var body dao.{{ table.name|dbcore_capitalize }}
 	err := getBody(r, &body)
 	if err != nil {
 		s.logger.Debug("Expected valid JSON, got: %s", err)
@@ -124,9 +124,9 @@ func (s Server) {{ table.name }}UpdateController(w http.ResponseWriter, r *http.
 		return
 	}
 
-	k := parse{{ table.name|string.capitalize }}Key(ps.ByName("key"))
+	k := parse{{ table.name|dbcore_capitalize }}Key(ps.ByName("key"))
 	{{ if api.auth.enabled && table.name == api.auth.table }}
-	result, err := s.dao.{{ table.name|string.capitalize }}Get(k)
+	result, err := s.dao.{{ table.name|dbcore_capitalize }}Get(k)
 	if err != nil {
 		sendErrorResponse(w, err)
 		return
@@ -136,7 +136,7 @@ func (s Server) {{ table.name }}UpdateController(w http.ResponseWriter, r *http.
 	{{ end }}
 
 	body.C_{{ table.primary_key.value.column }} = k
-	err = s.dao.{{ table.name|string.capitalize }}Update(k, body)
+	err = s.dao.{{ table.name|dbcore_capitalize }}Update(k, body)
 	if err != nil {
 		sendErrorResponse(w, err)
 		return
@@ -150,8 +150,8 @@ func (s Server) {{ table.name }}UpdateController(w http.ResponseWriter, r *http.
 }
 
 func (s Server) {{ table.name }}DeleteController(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	k := parse{{ table.name|string.capitalize }}Key(ps.ByName("key"))
-	err := s.dao.{{ table.name|string.capitalize }}Delete(k)
+	k := parse{{ table.name|dbcore_capitalize }}Key(ps.ByName("key"))
+	err := s.dao.{{ table.name|dbcore_capitalize }}Delete(k)
 	if err != nil {
 		sendErrorResponse(w, err)
 		return

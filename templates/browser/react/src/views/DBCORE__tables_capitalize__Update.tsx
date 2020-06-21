@@ -20,7 +20,7 @@ import { request } from '../api';
   end
 ~}}
 
-export function {{ table.name|string.capitalize }}Update() {
+export function {{ table.name|dbcore_capitalize }}Update() {
   const [state, setState] = React.useState<{ [key: string]: string }>({
     {{~ for column in table.columns ~}}
     {{~ if column.auto_increment
@@ -82,7 +82,7 @@ export function {{ table.name|string.capitalize }}Update() {
 
   return (
     <>
-      <Link to="/{{ table.name }}">{{ table.name|string.capitalize }}</Link> / {key}
+      <Link to="/{{ table.name }}">{{ table.name|dbcore_capitalize }}</Link> / {key}
       <Heading size="xl">Update</Heading>
       <Form error={error} buttonText="Update" onSubmit={handleSubmit}>
         {{~ for column in table.columns ~}}

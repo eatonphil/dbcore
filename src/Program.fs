@@ -23,6 +23,7 @@ let main (args: string []): int =
         Tables = tables
         Template = ""
         OutDir = ""
+        CultureName = cfg.CultureName
     }
     Template.GenerateApi(projectDir, cfg.Api, ctx)
     Template.GenerateBrowser(projectDir, cfg.Browser, ctx)

@@ -35,7 +35,7 @@ import (
         else
           "bool"
         end
-      when "timestamp"
+      when "timestamp", "timestamp with time zone"
         if $0.nullable
           "null.Time"
         else
@@ -47,18 +47,18 @@ import (
   end
 ~}}
 
-type {{ table.name|string.capitalize }} struct {
+type {{ table.name|dbcore_capitalize }} struct {
 	{{~ for column in table.columns ~}}
 	C_{{ column.name }} {{ toGoType column }} `db:"{{ column.name }}" json:"{{ column.name }}"`
 	{{~ end ~}}
 }
 
-type {{ table.name|string.capitalize }}PaginatedResponse struct {
+type {{ table.name|dbcore_capitalize }}PaginatedResponse struct {
 	Total uint64 `json:"total"`
-	Data []{{ table.name|string.capitalize }} `json:"data"`
+	Data []{{ table.name|dbcore_capitalize }} `json:"data"`
 }
 
-func (d DAO) {{ table.name|string.capitalize }}GetMany(where *Filter, p Pagination) (*{{ table.name|string.capitalize }}PaginatedResponse, error) {
+func (d DAO) {{ table.name|dbcore_capitalize }}GetMany(where *Filter, p Pagination) (*{{ table.name|dbcore_capitalize }}PaginatedResponse, error) {
 	if where == nil {
 		where = &Filter{}
 	}
@@ -85,15 +85,15 @@ OFFSET %d`, where.filter, p.Order, p.Limit, p.Offset)
 	}
 	defer rows.Close()
 
-	var response {{ table.name|string.capitalize }}PaginatedResponse
-	response.Data = []{{ table.name|string.capitalize }}{}
+	var response {{ table.name|dbcore_capitalize }}PaginatedResponse
+	response.Data = []{{ table.name|dbcore_capitalize }}{}
 	for rows.Next() {
 		if err := rows.Err(); err != nil {
 			return nil, err
 		}
 
 		var row struct {
-			{{ table.name|string.capitalize }}
+			{{ table.name|dbcore_capitalize }}
 			{{~ if database.dialect != "sqlite" ~}}
 			Total uint64 `db:"__total"`
 			{{~ end ~}}
@@ -106,7 +106,7 @@ OFFSET %d`, where.filter, p.Order, p.Limit, p.Offset)
 		{{~ if database.dialect != "sqlite" ~}}
 		response.Total = row.Total
 		{{~ end ~}}
-		response.Data = append(response.Data, row.{{ table.name|string.capitalize }})
+		response.Data = append(response.Data, row.{{ table.name|dbcore_capitalize }})
 	}
 
 	{{~ if database.dialect == "sqlite" ~}}
@@ -130,7 +130,7 @@ ORDER BY
 	return &response, err
 }
 
-func (d DAO) {{ table.name|string.capitalize }}Insert(body *{{ table.name|string.capitalize }}) error {
+func (d DAO) {{ table.name|dbcore_capitalize }}Insert(body *{{ table.name|dbcore_capitalize }}) error {
 	query := `
 	INSERT INTO {{ table.name }} (
   {{~ for column in table.columns ~}}
@@ -186,14 +186,14 @@ RETURNING {{ if table.primary_key.value }}{{ table.primary_key.value.column }}{{
 }
 
 {{ if table.primary_key.value }}
-func (d DAO) {{ table.name|string.capitalize }}Get(key {{ toGoType table.primary_key.value }}) (*{{ table.name|string.capitalize }}, error) {
+func (d DAO) {{ table.name|dbcore_capitalize }}Get(key {{ toGoType table.primary_key.value }}) (*{{ table.name|dbcore_capitalize }}, error) {
 	where, _ := ParseFilter(fmt.Sprintf("{{ table.primary_key.value.column }} = %#v", key))
 	pagination := Pagination{
 		Limit: 1,
 		Offset: 0,
 		Order: fmt.Sprintf("{{ table.primary_key.value.column }} DESC"),
 	}
-	r, err := d.{{ table.name|string.capitalize }}GetMany(where, pagination)
+	r, err := d.{{ table.name|dbcore_capitalize }}GetMany(where, pagination)
 	if err != nil {
 		return nil, err
 	}
@@ -205,7 +205,7 @@ func (d DAO) {{ table.name|string.capitalize }}Get(key {{ toGoType table.primary
 	return &r.Data[0], nil
 }
 
-func (d DAO) {{ table.name|string.capitalize }}Update(key {{ toGoType table.primary_key.value }}, body {{ table.name|string.capitalize }}) error {
+func (d DAO) {{ table.name|dbcore_capitalize }}Update(key {{ toGoType table.primary_key.value }}, body {{ table.name|dbcore_capitalize }}) error {
 	query := `
 UPDATE
   "{{ table.name }}"
@@ -226,7 +226,7 @@ WHERE
 	return err
 }
 
-func (d DAO) {{ table.name|string.capitalize }}Delete(key {{ toGoType table.primary_key.value }}) error {
+func (d DAO) {{ table.name|dbcore_capitalize }}Delete(key {{ toGoType table.primary_key.value }}) error {
 	query := `
 DELETE
   FROM "{{ table.name }}"

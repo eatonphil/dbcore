@@ -91,6 +91,7 @@ type CustomConfig() =
 
 type Config() =
     member val Project = "" with get, set
+    member val CultureName = System.Globalization.CultureInfo.CurrentCulture.Name with get, set
 
     member val Database = DatabaseConfig() with get, set
     member val Api = ApiConfig() with get, set

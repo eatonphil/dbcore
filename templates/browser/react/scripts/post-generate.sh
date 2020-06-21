@@ -1,6 +1,8 @@
-#!/usr/bin/env bash
+#!/usr/bin/env sh
 
-set -eux
+set -e
+set -u
+set -x
 
 chmod +x ./scripts/*.sh
 

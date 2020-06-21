@@ -20,7 +20,7 @@ import { request } from '../api';
   end
 ~}}
 
-export function {{ table.name|string.capitalize }}Create() {
+export function {{ table.name|dbcore_capitalize }}Create() {
   const [state, setState] = React.useState({
     {{~ for column in table.columns ~}}
     {{~ if column.auto_increment
@@ -59,7 +59,7 @@ export function {{ table.name|string.capitalize }}Create() {
 
   return (
     <>
-      <Link to="/{{ table.name }}">{{ table.name|string.capitalize }}</Link>
+      <Link to="/{{ table.name }}">{{ table.name|dbcore_capitalize }}</Link>
       <Heading size="xl">Create</Heading>
       <Form error={error} buttonText="Create" onSubmit={handleSubmit}>
         {{~ for column in table.columns ~}}

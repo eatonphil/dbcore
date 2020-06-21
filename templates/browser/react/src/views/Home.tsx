@@ -14,7 +14,7 @@ export function Home() {
             end
         ~}}
         <li>
-          <Link to="/{{ table.name }}">{{ table.name|string.capitalize }}</Link>
+          <Link to="/{{ table.name }}">{{ table.name|dbcore_capitalize }}</Link>
         </li>
         {{~ end ~}}
       </ul>

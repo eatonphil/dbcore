@@ -3,6 +3,7 @@
 set -e
 set -u
 set -x
+set -o pipefail
 
 chmod +x ./scripts/*.sh
 

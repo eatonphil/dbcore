@@ -5,7 +5,7 @@ import { Heading } from '../components/Heading';
 import { Link } from '../components/Link';
 import { request } from '../api';
 
-export function {{ table.name|string.capitalize }}Details() {
+export function {{ table.name|dbcore_capitalize }}Details() {
   const { params: { key } } = useRouteMatch();
   const actions = (
     <Link to={`/{{ table.name }}/_/${key}/update`}>Update</Link>
@@ -45,7 +45,7 @@ export function {{ table.name|string.capitalize }}Details() {
 
   return (
     <>
-      <Link to="/{{ table.name }}">{{ table.name|string.capitalize }}</Link>
+      <Link to="/{{ table.name }}">{{ table.name|dbcore_capitalize }}</Link>
       <Heading size="xl" actions={actions}>{key}</Heading>
       {{~ for column in table.columns ~}}
       <div className="mb-4 border-b">

@@ -1,4 +1,4 @@
-# {{ project|string.capitalize }} Browser Application
+# {{ project|dbcore_capitalize }} Browser Application
 
 To run development server:
 

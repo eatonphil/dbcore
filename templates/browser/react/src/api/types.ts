@@ -11,7 +11,7 @@
   end
 ~}}
 {{~ for table in tables ~}}
-export interface {{ table.name|string.capitalize }} {
+export interface {{ table.name|dbcore_capitalize }} {
   {{~ for column in table.columns ~}}
   {{ column.name }}{{ if column.nullable }}?{{ end }}: {{ toTypeScriptType column.type }};
   {{~ end ~}}

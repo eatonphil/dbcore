@@ -5,8 +5,6 @@ open System.Globalization
 open System.IO
 open System.Text.RegularExpressions
 
-open Scriban
-
 
 let rec private getFiles(dir: string) : seq<string> =
     seq {
@@ -30,15 +28,29 @@ type Context =
 
 
 let private writeProjectToDisk(sourceDir: string, outDir: string, ctx: Context) =
+    // TODO: base this on configuration?
+    let ti = CultureInfo("en-us", false).TextInfo
+
+    // Register helpers
+    let helpers =
+        [
+            ("dbcore_capitalize", System.Converter<string, string>(fun a -> ti.ToTitleCase(a)));
+        ]
+    let tctx = Scriban.TemplateContext()
+    let so = Scriban.Runtime.ScriptObject()
+    for (name, fn) in helpers do
+        Scriban.Runtime.ScriptObjectExtensions.Import(so, name, fn)
+    tctx.PushGlobal(so)
+
+    // Copy/render each template
     for f in getFiles(sourceDir) do
-        let tpl = Template.Parse(File.ReadAllText(f), f)
+        let tpl = Scriban.Template.Parse(File.ReadAllText(f), f)
 
         // Drop the SourceDir/ prefix
         let f = f.Substring(sourceDir.Length + 1)
 
         // Order by substring length descending
         let pathTemplateExpansions =
-            let ti = CultureInfo("en-us", false).TextInfo
             [
                 ("tables_capitalize",
                  fun (path: string, sub: string) ->
@@ -69,7 +81,8 @@ let private writeProjectToDisk(sourceDir: string, outDir: string, ctx: Context) 
             // Create directory if not exists
             FileInfo(outFile).Directory.Create()
 
-            File.WriteAllText(outFile, tpl.Render(ctx))
+            tctx.PushGlobal(Scriban.Runtime.ScriptObject.From(ctx))
+            File.WriteAllText(outFile, tpl.Render(tctx))
 
 
 let private generate(templateDir: string, projectDir: string, cfg: Config.IConfig, ctx: Context) =

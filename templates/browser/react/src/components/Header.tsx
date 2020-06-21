@@ -9,7 +9,7 @@ export function Header() {
         <div className="text-lg flex-grow">
           <h1>
             <Link to="/">
-              {{ project|string.capitalize }}
+              {{ project|dbcore_capitalize }}
             </Link>
           </h1>
         </div>

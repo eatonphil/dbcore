@@ -90,7 +90,7 @@ func (s Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 
 		pageInfo := dao.Pagination{Offset: 0, Limit: 1, Order: `"{{ api.auth.username }}" DESC`}
-		result, err := s.dao.{{ api.auth.table|string.capitalize }}GetMany(filter, pageInfo)
+		result, err := s.dao.{{ api.auth.table|dbcore_capitalize }}GetMany(filter, pageInfo)
 		if err != nil {
 			s.logger.Debugf("Error retrieving user: %s", err)
 			return false

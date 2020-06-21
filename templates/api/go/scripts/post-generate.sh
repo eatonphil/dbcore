@@ -3,5 +3,7 @@
 set -eu
 
 go get golang.org/x/tools/cmd/goimports
-(cd .. && go mod init {{ api.extra.repo }})
+if [[ ! -f ../go.mod ]]; then
+    (cd .. && go mod init {{ api.extra.repo }})
+fi
 goimports -w ./

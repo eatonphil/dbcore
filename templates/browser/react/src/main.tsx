@@ -12,14 +12,14 @@ import { Home } from './views/Home';
 import { Login, Logout } from './views/Login';
 {{ end }}
 {{~ for table in tables ~}}
-import { {{ table.name | string.capitalize }}List } from './views/{{ table.name|string.capitalize }}List';
+import { {{ table.name | dbcore_capitalize }}List } from './views/{{ table.name|dbcore_capitalize }}List';
 {{~ if table.primary_key.is_none
       continue
     end
 ~}}
-import { {{ table.name | string.capitalize }}Create } from './views/{{ table.name|string.capitalize }}Create';
-import { {{ table.name | string.capitalize }}Update } from './views/{{ table.name|string.capitalize }}Update';
-import { {{ table.name | string.capitalize }}Details } from './views/{{ table.name|string.capitalize }}Details';
+import { {{ table.name | dbcore_capitalize }}Create } from './views/{{ table.name|dbcore_capitalize }}Create';
+import { {{ table.name | dbcore_capitalize }}Update } from './views/{{ table.name|dbcore_capitalize }}Update';
+import { {{ table.name | dbcore_capitalize }}Details } from './views/{{ table.name|dbcore_capitalize }}Details';
 {{~ end ~}}
 
 function App() {
@@ -66,20 +66,20 @@ function App() {
           
             {{~ for table in tables ~}}
             <Route exact path="/{{ table.name }}">
-              <{{ table.name | string.capitalize}}List />
+              <{{ table.name | dbcore_capitalize}}List />
             </Route>
             {{~ if table.primary_key.is_none
                   continue
                 end
             ~}}
             <Route exact path="/{{ table.name }}/create">
-              <{{ table.name | string.capitalize}}Create />
+              <{{ table.name | dbcore_capitalize}}Create />
             </Route>
             <Route exact path="/{{ table.name }}/_/:key/update">
-              <{{ table.name | string.capitalize}}Update />
+              <{{ table.name | dbcore_capitalize}}Update />
             </Route>
             <Route exact path="/{{ table.name }}/_/:key">
-              <{{ table.name | string.capitalize}}Details />
+              <{{ table.name | dbcore_capitalize}}Details />
             </Route>
             {{ end }}
           </Switch>

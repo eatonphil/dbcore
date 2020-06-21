@@ -3,13 +3,13 @@ import React from 'react';
 import { useHistory } from 'react-router-dom';
 {{~ end ~}}
 
-import { {{ table.name|string.capitalize }} } from '../api';
+import { {{ table.name|dbcore_capitalize }} } from '../api';
 import { Heading } from '../components/Heading';
 import { Link } from '../components/Link';
 import { List } from '../components/List';
 import { useListData } from '../hooks/useListData';
 
-export function {{ table.name|string.capitalize }}List() {
+export function {{ table.name|dbcore_capitalize }}List() {
   {{~ if table.primary_key.value ~}}
   const history = useHistory();
   {{~ end ~}}
@@ -17,18 +17,18 @@ export function {{ table.name|string.capitalize }}List() {
     <Link to="/{{ table.name }}/create">Create</Link>
   );
 
-  const data = useListData<{{ table.name|string.capitalize }}>("{{ table.name }}");
+  const data = useListData<{{ table.name|dbcore_capitalize }}>("{{ table.name }}");
 
   return (
     <>
       <Heading
         size="xl"
         actions={actions}
-      >{{ table.name|string.capitalize }}</Heading>
+      >{{ table.name|dbcore_capitalize }}</Heading>
       <List
         data={data}
         {{~ if table.primary_key.value ~}}
-        onRowClick={(row: {{ table.name|string.capitalize }}) =>
+        onRowClick={(row: {{ table.name|dbcore_capitalize }}) =>
           history.push("/{{ table.name }}/_/"+row["{{ table.primary_key.value.column }}"])}
         {{~ end ~}}
       />

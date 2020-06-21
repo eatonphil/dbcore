@@ -12,6 +12,7 @@ let main (args: string []): int =
 
     if cfg.Database.Dialect = "sqlite" then
         cfg.Database.Database <- Path.Combine(projectDir, cfg.Database.Database)
+    printf "%A\n" cfg.Database.Database
     let db = Reader.Reader(cfg.Database)
     let tables = db.GetTables()
 
@@ -23,6 +24,7 @@ let main (args: string []): int =
         Tables = tables
         Template = ""
         OutDir = ""
+        CultureName = cfg.CultureName
     }
     Template.GenerateApi(projectDir, cfg.Api, ctx)
     Template.GenerateBrowser(projectDir, cfg.Browser, ctx)

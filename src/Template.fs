@@ -1,7 +1,6 @@
 module Template
 
 open System.Diagnostics
-open System.Globalization
 open System.IO
 open System.Text.RegularExpressions
 
@@ -24,12 +23,12 @@ type Context =
         Browser: Config.BrowserConfig
         OutDir: string
         Template: string
+        CultureName: string
     }
 
 
 let private writeProjectToDisk(sourceDir: string, outDir: string, ctx: Context) =
-    // TODO: base this on configuration?
-    let ti = CultureInfo("en-us", false).TextInfo
+    let ti = System.Globalization.CultureInfo(ctx.CultureName, false).TextInfo
 
     // Register helpers
     let helpers =

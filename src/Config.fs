@@ -60,6 +60,13 @@ type ApiEndpointConfig() =
     member val Delete = ApiEndpointMethodConfig() with get, set
 
 
+type ApiAuditConfig() =
+    member val Enabled = false with get, set
+    member val MigrationDirectory = "" with get, set
+    member val TableSuffix = "_audit" with get, set
+    member val TablePrefix = "" with get, set
+
+
 type ApiConfig() =
     interface IConfig with
         member val OutDir = "api" with get, set
@@ -69,6 +76,8 @@ type ApiConfig() =
     member val RouterPrefix = "" with get, set
     member val Endpoints = Dictionary<string, ApiEndpointConfig>() with get, set
     member val Extra = Dictionary<string, obj>() with get, set
+
+    member val Audit = ApiAuditConfig() with get, set
 
     member this.Validate() =
         // TODO: should probably turn validation into a schema per template

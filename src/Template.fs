@@ -104,6 +104,15 @@ let private generate(templateDir: string, projectDir: string, cfg: Config.IConfi
 let GenerateApi(projectDir: string, cfg: Config.IConfig, ctx: Context) =
     generate("templates/api", projectDir, cfg, ctx)
 
+    cfg.Template <- "audit"
+    cfg.OutDir <- ""
+    if ctx.Api.Audit.Enabled then
+        generate(
+            "templates",
+            Path.Combine(projectDir, ctx.Api.Audit.MigrationDirectory),
+            cfg,
+            ctx)
+
 
 let GenerateBrowser(projectDir: string, cfg: Config.IConfig, ctx: Context) =
     generate("templates/browser", projectDir, cfg, ctx)

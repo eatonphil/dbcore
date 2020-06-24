@@ -65,6 +65,10 @@ func (d DAO) {{ table.name|dbcore_capitalize }}GetMany(where *Filter, p Paginati
 
 	query := fmt.Sprintf(`
 SELECT
+  {{~ if api.audit.enabled && table.primary_key.value ~}}
+  deleted,
+  a.updated_at,
+  {{~ end ~}}
   {{~ for column in table.columns ~}}
   "{{ column.name }}"{{ if !for.last || database.dialect != "sqlite" }},{{ end }}
   {{~ end ~}}
@@ -72,7 +76,20 @@ SELECT
   COUNT(1) OVER() AS __total
   {{~ end ~}}
 FROM
-  "{{table.name}}"
+  "{{ table.name }}" t
+{{~ if api.audit.enabled && table.primary_key.value ~}}
+JOIN (
+  SELECT
+    id,
+    kind = 'delete' AS deleted,
+    created_at as updated_at,
+  FROM
+    "{{ api.audit.table_prefix }}{{ table.name }}{{ api.audit.table_suffix }}"
+  ORDER BY created_at DESC
+  LIMIT 1
+) a
+  ON a.id = t."{{ table.primary_key.value.column }}"
+{{~ end ~}}
 %s
 ORDER BY
   %s

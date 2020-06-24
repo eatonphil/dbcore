@@ -13,7 +13,7 @@ import { Login, Logout } from './views/Login';
 {{ end }}
 {{~ for table in tables ~}}
 import { {{ table.name | dbcore_capitalize }}List } from './views/{{ table.name|dbcore_capitalize }}List';
-{{~ if table.primary_key.is_none
+{{~ if !table.primary_key.value
       continue
     end
 ~}}
@@ -68,7 +68,7 @@ function App() {
             <Route exact path="/{{ table.name }}">
               <{{ table.name | dbcore_capitalize}}List />
             </Route>
-            {{~ if table.primary_key.is_none
+            {{~ if !table.primary_key.value
                   continue
                 end
             ~}}

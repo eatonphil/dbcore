@@ -9,7 +9,7 @@ export function Home() {
       <Heading size="xl">Home</Heading>
       <ul>
         {{~ for table in tables ~}}
-        {{~ if table.primary_key.is_none
+        {{~ if !table.primary_key.value
               continue
             end
         ~}}

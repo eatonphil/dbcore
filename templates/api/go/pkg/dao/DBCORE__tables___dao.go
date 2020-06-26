@@ -142,13 +142,28 @@ ORDER BY
 
 func (d DAO) {{ table.name|dbcore_capitalize }}Insert(body *{{ table.name|dbcore_capitalize }}) error {
 	{{~ if api.audit.created_at ~}}
+	{{~ if database.dialect == "sqlite" ~}}
+	now := time.Now().Format(time.RFC3339)
+	body.C_{{ api.audit.created_at }} = now
+	{{~ else ~}}
 	body.C_{{ api.audit.created_at }} = time.Now()
 	{{~ end ~}}
+	{{~ end ~}}
+
 	{{~ if api.audit.updated_at ~}}
+	{{~ if database.dialect == "sqlite" ~}}
+	body.C_{{ api.audit.updated_at }} = now
+	{{~ else ~}}
 	body.C_{{ api.audit.updated_at }} = time.Now()
 	{{~ end ~}}
+	{{~ end ~}}
+
 	{{~ if api.audit.deleted_at ~}}
+	{{~ if database.dialect == "sqlite" ~}}
+	body.C_{{ api.audit.updated_at }} = null.StringFromPtr(nil)
+	{{~ else ~}}
 	body.C_{{ api.audit.deleted_at }} = null.TimeFromPtr(nil)
+	{{~ end ~}}
 	{{~ end ~}}
 
 	query := `
@@ -228,7 +243,11 @@ func (d DAO) {{ table.name|dbcore_capitalize }}Get(key {{ toGoType table.primary
 
 func (d DAO) {{ table.name|dbcore_capitalize }}Update(key {{ toGoType table.primary_key.value }}, body {{ table.name|dbcore_capitalize }}) error {
 	{{~ if api.audit.updated_at ~}}
+	{{~ if database.dialect == "sqlite" ~}}
+	body.C_{{ api.audit.updated_at }} = null.StringFromPtr(nil)
+	{{~ else ~}}
 	body.C_{{ api.audit.updated_at }} = time.Now()
+	{{~ end ~}}
 	{{~ end ~}}
 
 	query := `
@@ -256,7 +275,7 @@ func (d DAO) {{ table.name|dbcore_capitalize }}Delete(key {{ toGoType table.prim
 {{~ if api.audit.deleted_at ~}}
 UPDATE
   "{{ table.name }}"
-SET "{{ api.audit.deleted_at }}" = NOW()
+SET "{{ api.audit.deleted_at }}" = {{ database.dialect == "sqlite" }}DATETIME('now'){{ else }}NOW(){{ end }}
 {{~ else ~}}
 DELETE
   FROM "{{ table.name }}"

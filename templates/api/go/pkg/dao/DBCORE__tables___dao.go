@@ -63,12 +63,14 @@ func (d DAO) {{ table.name|dbcore_capitalize }}GetMany(where *Filter, p Paginati
 		where = &Filter{}
 	}
 
+	{{~ if api.audit.deleted_at ~}}
+	// Appended to an implicit `deleted_at IS NULL` base filter.
+	where.filter = ` AND
+  ` + where.filter[len("where "):]
+	{{~ end ~}}
+
 	query := fmt.Sprintf(`
 SELECT
-  {{~ if api.audit.enabled && table.primary_key.value ~}}
-  deleted,
-  a.updated_at,
-  {{~ end ~}}
   {{~ for column in table.columns ~}}
   "{{ column.name }}"{{ if !for.last || database.dialect != "sqlite" }},{{ end }}
   {{~ end ~}}
@@ -77,20 +79,9 @@ SELECT
   {{~ end ~}}
 FROM
   "{{ table.name }}" t
-{{~ if api.audit.enabled && table.primary_key.value ~}}
-JOIN (
-  SELECT
-    id,
-    kind = 'delete' AS deleted,
-    created_at as updated_at,
-  FROM
-    "{{ api.audit.table_prefix }}{{ table.name }}{{ api.audit.table_suffix }}"
-  ORDER BY created_at DESC
-  LIMIT 1
-) a
-  ON a.id = t."{{ table.primary_key.value.column }}"
-{{~ end ~}}
-%s
+{{~ if api.audit.deleted_at ~}}
+WHERE
+  "{{ api.audit.deleted_at }}" IS NULL{{~ end ~}} %s
 ORDER BY
   %s
 LIMIT %d
@@ -127,6 +118,8 @@ OFFSET %d`, where.filter, p.Order, p.Limit, p.Offset)
 	}
 
 	{{~ if database.dialect == "sqlite" ~}}
+	// COUNT() OVER() doesn't seem to work in the Go SQLite
+	// package even though it works in the sqlite3 CLI.
 	query = fmt.Sprintf(`
 SELECT
   COUNT(1)
@@ -148,6 +141,16 @@ ORDER BY
 }
 
 func (d DAO) {{ table.name|dbcore_capitalize }}Insert(body *{{ table.name|dbcore_capitalize }}) error {
+	{{~ if api.audit.created_at ~}}
+	body.C_{{ api.audit.created_at }} = time.Now()
+	{{~ end ~}}
+	{{~ if api.audit.updated_at ~}}
+	body.C_{{ api.audit.updated_at }} = time.Now()
+	{{~ end ~}}
+	{{~ if api.audit.deleted_at ~}}
+	body.C_{{ api.audit.deleted_at }} = null.TimeFromPtr(nil)
+	{{~ end ~}}
+
 	query := `
 	INSERT INTO {{ table.name }} (
   {{~ for column in table.columns ~}}
@@ -166,6 +169,7 @@ VALUES (
   {{~ index = index + 1 ~}}
   {{~ end ~}})`
 	d.logger.Debug(query)
+
 	{{~ if database.dialect == "postgres" ~}}
 	row := d.db.QueryRowx(query +`
 RETURNING {{ if table.primary_key.value }}{{ table.primary_key.value.column }}{{ else }}{{ table.columns[0].name }}{{ end }}
@@ -223,6 +227,10 @@ func (d DAO) {{ table.name|dbcore_capitalize }}Get(key {{ toGoType table.primary
 }
 
 func (d DAO) {{ table.name|dbcore_capitalize }}Update(key {{ toGoType table.primary_key.value }}, body {{ table.name|dbcore_capitalize }}) error {
+	{{~ if api.audit.updated_at ~}}
+	body.C_{{ api.audit.updated_at }} = time.Now()
+	{{~ end ~}}
+
 	query := `
 UPDATE
   "{{ table.name }}"
@@ -245,10 +253,17 @@ WHERE
 
 func (d DAO) {{ table.name|dbcore_capitalize }}Delete(key {{ toGoType table.primary_key.value }}) error {
 	query := `
+{{~ if api.audit.deleted_at ~}}
+UPDATE
+  "{{ table.name }}"
+SET "{{ api.audit.deleted_at }}" = NOW()
+{{~ else ~}}
 DELETE
   FROM "{{ table.name }}"
+{{~ end ~}}
 WHERE
   "{{ table.primary_key.value.column }}" = {{ if database.dialect == "postgres" }}$1{{ else }}?{{ end }}`
+
 	d.logger.Debug(query)
 	stmt, err := d.db.Prepare(query)
 	if err != nil {

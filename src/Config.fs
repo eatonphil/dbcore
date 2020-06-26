@@ -61,10 +61,9 @@ type ApiEndpointConfig() =
 
 
 type ApiAuditConfig() =
-    member val Enabled = false with get, set
-    member val MigrationDirectory = "" with get, set
-    member val TableSuffix = "_audit" with get, set
-    member val TablePrefix = "" with get, set
+    member val CreatedAt = "" with get, set
+    member val UpdatedAt = "" with get, set
+    member val DeletedAt = "" with get, set
 
 
 type ApiConfig() =

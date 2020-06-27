@@ -47,21 +47,28 @@ import (
   end
 ~}}
 
-type {{ table.name|dbcore_capitalize }} struct {
+type {{ table.label|dbcore_capitalize }} struct {
 	{{~ for column in table.columns ~}}
 	C_{{ column.name }} {{ toGoType column }} `db:"{{ column.name }}" json:"{{ column.name }}"`
 	{{~ end ~}}
 }
 
-type {{ table.name|dbcore_capitalize }}PaginatedResponse struct {
+type {{ table.label|dbcore_capitalize }}PaginatedResponse struct {
 	Total uint64 `json:"total"`
-	Data []{{ table.name|dbcore_capitalize }} `json:"data"`
+	Data []{{ table.label|dbcore_capitalize }} `json:"data"`
 }
 
-func (d DAO) {{ table.name|dbcore_capitalize }}GetMany(where *Filter, p Pagination) (*{{ table.name|dbcore_capitalize }}PaginatedResponse, error) {
+func (d DAO) {{ table.label|dbcore_capitalize }}GetMany(where *Filter, p Pagination) (*{{ table.label|dbcore_capitalize }}PaginatedResponse, error) {
 	if where == nil {
 		where = &Filter{}
+		{{ if api.audit.enabled && api.audit.deleted_at }}
+		where.filter = `WHERE "{{ api.audit.deleted_at }}" IS NULL`
+		{{~ end ~}}
+	} {{~ if api.audit.enabled && api.audit.deleted_at ~}} else {
+	where.filter = where.filter + ` AND
+  "{{ api.audit.deleted_at }}" IS NULL`
 	}
+	{{~ end ~}}
 
 	query := fmt.Sprintf(`
 SELECT
@@ -72,7 +79,7 @@ SELECT
   COUNT(1) OVER() AS __total
   {{~ end ~}}
 FROM
-  "{{table.name}}"
+  "{{ table.name }}" t
 %s
 ORDER BY
   %s
@@ -85,15 +92,15 @@ OFFSET %d`, where.filter, p.Order, p.Limit, p.Offset)
 	}
 	defer rows.Close()
 
-	var response {{ table.name|dbcore_capitalize }}PaginatedResponse
-	response.Data = []{{ table.name|dbcore_capitalize }}{}
+	var response {{ table.label|dbcore_capitalize }}PaginatedResponse
+	response.Data = []{{ table.label|dbcore_capitalize }}{}
 	for rows.Next() {
 		if err := rows.Err(); err != nil {
 			return nil, err
 		}
 
 		var row struct {
-			{{ table.name|dbcore_capitalize }}
+			{{ table.label|dbcore_capitalize }}
 			{{~ if database.dialect != "sqlite" ~}}
 			Total uint64 `db:"__total"`
 			{{~ end ~}}
@@ -106,10 +113,12 @@ OFFSET %d`, where.filter, p.Order, p.Limit, p.Offset)
 		{{~ if database.dialect != "sqlite" ~}}
 		response.Total = row.Total
 		{{~ end ~}}
-		response.Data = append(response.Data, row.{{ table.name|dbcore_capitalize }})
+		response.Data = append(response.Data, row.{{ table.label|dbcore_capitalize }})
 	}
 
 	{{~ if database.dialect == "sqlite" ~}}
+	// COUNT() OVER() doesn't seem to work in the Go SQLite
+	// package even though it works in the sqlite3 CLI.
 	query = fmt.Sprintf(`
 SELECT
   COUNT(1)
@@ -130,7 +139,34 @@ ORDER BY
 	return &response, err
 }
 
-func (d DAO) {{ table.name|dbcore_capitalize }}Insert(body *{{ table.name|dbcore_capitalize }}) error {
+func (d DAO) {{ table.label|dbcore_capitalize }}Insert(body *{{ table.label|dbcore_capitalize }}) error {
+	{{~ if api.audit.enabled ~}}
+	{{~ if api.audit.created_at ~}}
+	{{~ if database.dialect == "sqlite" ~}}
+	now := time.Now().Format(time.RFC3339)
+	body.C_{{ api.audit.created_at }} = now
+	{{~ else ~}}
+	body.C_{{ api.audit.created_at }} = time.Now()
+	{{~ end ~}}
+	{{~ end ~}}
+
+	{{~ if api.audit.updated_at ~}}
+	{{~ if database.dialect == "sqlite" ~}}
+	body.C_{{ api.audit.updated_at }} = now
+	{{~ else ~}}
+	body.C_{{ api.audit.updated_at }} = time.Now()
+	{{~ end ~}}
+	{{~ end ~}}
+
+	{{~ if api.audit.deleted_at ~}}
+	{{~ if database.dialect == "sqlite" ~}}
+	body.C_{{ api.audit.deleted_at }} = null.StringFromPtr(nil)
+	{{~ else ~}}
+	body.C_{{ api.audit.deleted_at }} = null.TimeFromPtr(nil)
+	{{~ end ~}}
+	{{~ end ~}}
+	{{~ end ~}}
+
 	query := `
 	INSERT INTO {{ table.name }} (
   {{~ for column in table.columns ~}}
@@ -149,6 +185,7 @@ VALUES (
   {{~ index = index + 1 ~}}
   {{~ end ~}})`
 	d.logger.Debug(query)
+
 	{{~ if database.dialect == "postgres" ~}}
 	row := d.db.QueryRowx(query +`
 RETURNING {{ if table.primary_key.value }}{{ table.primary_key.value.column }}{{ else }}{{ table.columns[0].name }}{{ end }}
@@ -186,14 +223,14 @@ RETURNING {{ if table.primary_key.value }}{{ table.primary_key.value.column }}{{
 }
 
 {{ if table.primary_key.value }}
-func (d DAO) {{ table.name|dbcore_capitalize }}Get(key {{ toGoType table.primary_key.value }}) (*{{ table.name|dbcore_capitalize }}, error) {
+func (d DAO) {{ table.label|dbcore_capitalize }}Get(key {{ toGoType table.primary_key.value }}) (*{{ table.label|dbcore_capitalize }}, error) {
 	where, _ := ParseFilter(fmt.Sprintf("{{ table.primary_key.value.column }} = %#v", key))
 	pagination := Pagination{
 		Limit: 1,
 		Offset: 0,
 		Order: fmt.Sprintf("{{ table.primary_key.value.column }} DESC"),
 	}
-	r, err := d.{{ table.name|dbcore_capitalize }}GetMany(where, pagination)
+	r, err := d.{{ table.label|dbcore_capitalize }}GetMany(where, pagination)
 	if err != nil {
 		return nil, err
 	}
@@ -205,7 +242,17 @@ func (d DAO) {{ table.name|dbcore_capitalize }}Get(key {{ toGoType table.primary
 	return &r.Data[0], nil
 }
 
-func (d DAO) {{ table.name|dbcore_capitalize }}Update(key {{ toGoType table.primary_key.value }}, body {{ table.name|dbcore_capitalize }}) error {
+func (d DAO) {{ table.label|dbcore_capitalize }}Update(key {{ toGoType table.primary_key.value }}, body {{ table.label|dbcore_capitalize }}) error {
+	{{~ if api.audit.enabled ~}}
+	{{~ if api.audit.updated_at ~}}
+	{{~ if database.dialect == "sqlite" ~}}
+	body.C_{{ api.audit.updated_at }} = time.Now().Format(time.RFC3339)
+	{{~ else ~}}
+	body.C_{{ api.audit.updated_at }} = time.Now()
+	{{~ end ~}}
+	{{~ end ~}}
+	{{~ end ~}}
+
 	query := `
 UPDATE
   "{{ table.name }}"
@@ -226,12 +273,19 @@ WHERE
 	return err
 }
 
-func (d DAO) {{ table.name|dbcore_capitalize }}Delete(key {{ toGoType table.primary_key.value }}) error {
+func (d DAO) {{ table.label|dbcore_capitalize }}Delete(key {{ toGoType table.primary_key.value }}) error {
 	query := `
+{{~ if api.audit.enabled && api.audit.deleted_at ~}}
+UPDATE
+  "{{ table.name }}"
+SET "{{ api.audit.deleted_at }}" = {{ database.dialect == "sqlite" }}DATETIME('now'){{ else }}NOW(){{ end }}
+{{~ else ~}}
 DELETE
   FROM "{{ table.name }}"
+{{~ end ~}}
 WHERE
   "{{ table.primary_key.value.column }}" = {{ if database.dialect == "postgres" }}$1{{ else }}?{{ end }}`
+
 	d.logger.Debug(query)
 	stmt, err := d.db.Prepare(query)
 	if err != nil {

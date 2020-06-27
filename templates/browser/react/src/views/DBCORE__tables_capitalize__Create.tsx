@@ -20,7 +20,7 @@ import { request } from '../api';
   end
 ~}}
 
-export function {{ table.name|dbcore_capitalize }}Create() {
+export function {{ table.label|dbcore_capitalize }}Create() {
   const [state, setState] = React.useState({
     {{~ for column in table.columns ~}}
     {{~ if column.auto_increment
@@ -37,9 +37,9 @@ export function {{ table.name|dbcore_capitalize }}Create() {
     setError('');
 
     try {
-      const rsp = await request('{{ table.name }}', {
+      const rsp = await request('{{ table.label }}', {
         {{~ for column in table.columns ~}}
-        {{~ if column.auto_increment
+        {{~ if column.auto_increment || (api.audit.enabled && ([api.audit.created_at, api.audit.updated_at, api.audit.deleted_at] | array.contains column.name))
               continue
             end ~}}
         '{{ column.name }}': {{ javascriptValueify column.type }}(state['{{ column.name }}']),
@@ -51,19 +51,27 @@ export function {{ table.name|dbcore_capitalize }}Create() {
         return false;
       }
 
-      history.push('/{{ table.name }}');
+      history.push('/{{ table.label }}');
     } finally {
       return false;
     }
-  }, [history]);
+  }, [
+    history,
+    {{~ for column in table.columns ~}}
+    {{~ if column.auto_increment
+          continue
+        end ~}}
+    state['{{ column.name }}'],
+    {{~ end ~}}
+  ]);
 
   return (
     <>
-      <Link to="/{{ table.name }}">{{ table.name|dbcore_capitalize }}</Link>
+      <Link to="/{{ table.label }}">{{ table.label|dbcore_capitalize }}</Link>
       <Heading size="xl">Create</Heading>
       <Form error={error} buttonText="Create" onSubmit={handleSubmit}>
         {{~ for column in table.columns ~}}
-        {{~ if column.auto_increment
+        {{~ if column.auto_increment || (api.audit.enabled && ([api.audit.created_at, api.audit.updated_at, api.audit.deleted_at] | array.contains column.name))
               continue
             end ~}}
         <div className="mb-4">

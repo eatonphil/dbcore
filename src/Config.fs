@@ -7,6 +7,17 @@ open YamlDotNet.Serialization
 open YamlDotNet.Serialization.NamingConventions
 
 
+type DatabaseTableConfig() =
+    let mutable label = ""
+
+    member val Name = "" with get, set
+
+    member this.Label
+        with get() : string =
+            if label <> "" then label else this.Name
+        and set(value: string) = label <- value
+
+
 type DatabaseConfig() =
     let mutable port = ""
     let mutable schema = ""
@@ -16,6 +27,8 @@ type DatabaseConfig() =
     member val Database = "" with get, set
     member val Username = "" with get, set
     member val Password = "" with get, set
+
+    member val Tables: array<DatabaseTableConfig> = [||] with get, set
 
     member this.Schema
         with get() : string =
@@ -60,6 +73,13 @@ type ApiEndpointConfig() =
     member val Delete = ApiEndpointMethodConfig() with get, set
 
 
+type ApiAuditConfig() =
+    member val Enabled = false with get, set
+    member val CreatedAt = "" with get, set
+    member val UpdatedAt = "" with get, set
+    member val DeletedAt = "" with get, set
+
+
 type ApiConfig() =
     interface IConfig with
         member val OutDir = "api" with get, set
@@ -69,6 +89,8 @@ type ApiConfig() =
     member val RouterPrefix = "" with get, set
     member val Endpoints = Dictionary<string, ApiEndpointConfig>() with get, set
     member val Extra = Dictionary<string, obj>() with get, set
+
+    member val Audit = ApiAuditConfig() with get, set
 
     member this.Validate() =
         // TODO: should probably turn validation into a schema per template
@@ -80,6 +102,8 @@ type BrowserConfig() =
     interface IConfig with
         member val OutDir = "browser" with get, set
         member val Template = "react" with get, set
+
+    member val DefaultRoute = "" with get, set
 
 
 type CustomConfig() =

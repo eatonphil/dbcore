@@ -35,6 +35,7 @@
 	      <li>List, add, edit, delete</li>
 	      <li>Filter, paginate, sort</li>
 	      <li>Authenticate with JWT tokens</li>
+	      <li>Automated create, update, delete timestamps</li>
 	    </ul>
 	  </li>
 	  <li>With an MIT license</li>
@@ -96,6 +97,13 @@ api:
 
   # e.g. "v1/", for URLs
   routerPrefix: $router-prefix
+
+  audit:
+    # Disabled by default
+    enabled: true
+    createdAt: $createdAtColumn
+    updatedAt: $updatedAtColumn
+    deletedAt: $deletedAtColumn
 
   auth:
     # Disabled by default
@@ -269,6 +277,10 @@ session:
           running <code>dbcore .</code> you can run <code>yarn
           start</code> in <code>browser/</code> to start the
           application at <code>http://localhost:9091</code>.
+	</p>
+	<p>
+	  Use <code>browser.defaultRoute</code> to override the
+	  default home page.
 	</p>
       </div>
     </section>

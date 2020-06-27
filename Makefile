@@ -12,3 +12,8 @@ build:
 install:
 	rm /usr/local/bin/dbcore
 	ln -s $(CURDIR)/bin/release/netcoreapp3.0/linux-x64/publish/dbcore /usr/local/bin
+
+test-example-todo:
+	dotnet run ./examples/todo
+	(cd examples/todo/api && go build cmd/main.go)
+	(cd examples/todo/browser && yarn tsc)

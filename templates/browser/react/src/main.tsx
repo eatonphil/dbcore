@@ -3,23 +3,28 @@ import ReactDOM from 'react-dom';
 import {
   BrowserRouter as Router,
   Switch,
-  Route
+  {{~ if browser.default_route != '' ~}}
+  Redirect,
+  {{~ end ~}}
+  Route,
 } from 'react-router-dom';
 
 import { Header } from './components/Header';
+{{ if browser.default_route == '' }}
 import { Home } from './views/Home';
+{{ end }}
 {{ if api.auth.enabled }}
 import { Login, Logout } from './views/Login';
 {{ end }}
 {{~ for table in tables ~}}
-import { {{ table.name | dbcore_capitalize }}List } from './views/{{ table.name|dbcore_capitalize }}List';
-{{~ if table.primary_key.is_none
+import { {{ table.label | dbcore_capitalize }}List } from './views/{{ table.label|dbcore_capitalize }}List';
+{{~ if !table.primary_key.value
       continue
     end
 ~}}
-import { {{ table.name | dbcore_capitalize }}Create } from './views/{{ table.name|dbcore_capitalize }}Create';
-import { {{ table.name | dbcore_capitalize }}Update } from './views/{{ table.name|dbcore_capitalize }}Update';
-import { {{ table.name | dbcore_capitalize }}Details } from './views/{{ table.name|dbcore_capitalize }}Details';
+import { {{ table.label | dbcore_capitalize }}Create } from './views/{{ table.label|dbcore_capitalize }}Create';
+import { {{ table.label | dbcore_capitalize }}Update } from './views/{{ table.label|dbcore_capitalize }}Update';
+import { {{ table.label | dbcore_capitalize }}Details } from './views/{{ table.label|dbcore_capitalize }}Details';
 {{~ end ~}}
 
 function App() {
@@ -50,10 +55,14 @@ function App() {
       <div>
         <Header />
 
-        <div className="container mx-auto p-4">
+        <div className="container mx-auto">
           <Switch>
             <Route exact path="/">
+              {{~ if browser.default_route == "" ~}}
               <Home />
+              {{~ else ~}}
+              <Redirect to={ { pathname: '/{{ browser.default_route }}' } } />
+              {{~ end ~}}
             </Route>
             {{ if api.auth.enabled }}
             <Route exact path="/login">
@@ -63,23 +72,22 @@ function App() {
               <Logout />
             </Route>
             {{ end }}
-          
             {{~ for table in tables ~}}
-            <Route exact path="/{{ table.name }}">
-              <{{ table.name | dbcore_capitalize}}List />
+            <Route exact path="/{{ table.label }}">
+              <{{ table.label | dbcore_capitalize}}List />
             </Route>
-            {{~ if table.primary_key.is_none
+            {{~ if !table.primary_key.value
                   continue
                 end
             ~}}
-            <Route exact path="/{{ table.name }}/create">
-              <{{ table.name | dbcore_capitalize}}Create />
+            <Route exact path="/{{ table.label }}/create">
+              <{{ table.label | dbcore_capitalize}}Create />
             </Route>
-            <Route exact path="/{{ table.name }}/_/:key/update">
-              <{{ table.name | dbcore_capitalize}}Update />
+            <Route exact path="/{{ table.label }}/_/:key/update">
+              <{{ table.label | dbcore_capitalize}}Update />
             </Route>
-            <Route exact path="/{{ table.name }}/_/:key">
-              <{{ table.name | dbcore_capitalize}}Details />
+            <Route exact path="/{{ table.label }}/_/:key">
+              <{{ table.label | dbcore_capitalize}}Details />
             </Route>
             {{ end }}
           </Switch>

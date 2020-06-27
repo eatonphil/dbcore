@@ -8,6 +8,11 @@ api:
   routerPrefix: v1/
   auth:
     enabled: true
+  audit:
+    enabled: true
+    createdAt: created_at
+    updatedAt: updated_at
+    deletedAt: deleted_at
   endpoints:
     notes:
       get:

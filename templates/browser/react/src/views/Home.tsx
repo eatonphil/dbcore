@@ -9,12 +9,12 @@ export function Home() {
       <Heading size="xl">Home</Heading>
       <ul>
         {{~ for table in tables ~}}
-        {{~ if table.primary_key.is_none
+        {{~ if !table.primary_key.value
               continue
             end
         ~}}
         <li>
-          <Link to="/{{ table.name }}">{{ table.name|dbcore_capitalize }}</Link>
+          <Link to="/{{ table.label }}">{{ table.label|dbcore_capitalize }}</Link>
         </li>
         {{~ end ~}}
       </ul>

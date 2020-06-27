@@ -90,8 +90,7 @@ func ParseFilter(filter string) (*Filter, error) {
 		}
 
 		{{ if database.dialect == "postgres" }}
-		nth, _ := strconv.ParseInt(re.FindStringSubmatch(exp)[1], 10, 64)
-		return fmt.Sprintf("$%d", nth - 1)
+		return fmt.Sprintf("$%d", len(f.args))
 		{{ else if database.dialect == "mysql" || database.dialect == "sqlite" }}
 		return "?"
 		{{ end }}

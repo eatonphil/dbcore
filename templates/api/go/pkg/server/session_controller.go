@@ -26,6 +26,11 @@ func (s Server) SessionStartController(w http.ResponseWriter, r *http.Request, _
 		return
 	}
 
+	if userPass.Username == "" || userPass.Password == "" {
+		sendValidationErrorResponse(w, "Expected username and password in body")
+		return
+	}
+
 	q := fmt.Sprintf(`{{ api.auth.username }} = '%s'`, userPass.Username)
 	filter, err := dao.ParseFilter(q)
 	if err != nil {

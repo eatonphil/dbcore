@@ -61,10 +61,12 @@ type {{ table.label|dbcore_capitalize }}PaginatedResponse struct {
 func (d DAO) {{ table.label|dbcore_capitalize }}GetMany(where *Filter, p Pagination) (*{{ table.label|dbcore_capitalize }}PaginatedResponse, error) {
 	if where == nil {
 		where = &Filter{}
-	}{{~ if api.audit.enabled && api.audit.deleted_at ~}} else {
-	// Appended to an implicit `deleted_at IS NULL` base filter.
-	where.filter = ` AND
-  ` + where.filter[len("where "):]
+		{{ if api.audit.enabled && api.audit.deleted_at }}
+		where.filter = `WHERE "{{ api.audit.deleted_at }}" IS NULL`
+		{{~ end ~}}
+	} {{~ if api.audit.enabled && api.audit.deleted_at ~}} else {
+	where.filter = where.filter + ` AND
+  "{{ api.audit.deleted_at }}" IS NULL`
 	}
 	{{~ end ~}}
 
@@ -78,9 +80,7 @@ SELECT
   {{~ end ~}}
 FROM
   "{{ table.name }}" t
-{{~ if api.audit.enabled && api.audit.deleted_at ~}}
-WHERE
-  "{{ api.audit.deleted_at }}" IS NULL{{~ end ~}} %s
+%s
 ORDER BY
   %s
 LIMIT %d
@@ -160,7 +160,7 @@ func (d DAO) {{ table.label|dbcore_capitalize }}Insert(body *{{ table.label|dbco
 
 	{{~ if api.audit.deleted_at ~}}
 	{{~ if database.dialect == "sqlite" ~}}
-	body.C_{{ api.audit.updated_at }} = null.StringFromPtr(nil)
+	body.C_{{ api.audit.deleted_at }} = null.StringFromPtr(nil)
 	{{~ else ~}}
 	body.C_{{ api.audit.deleted_at }} = null.TimeFromPtr(nil)
 	{{~ end ~}}
@@ -246,7 +246,7 @@ func (d DAO) {{ table.label|dbcore_capitalize }}Update(key {{ toGoType table.pri
 	{{~ if api.audit.enabled ~}}
 	{{~ if api.audit.updated_at ~}}
 	{{~ if database.dialect == "sqlite" ~}}
-	body.C_{{ api.audit.updated_at }} = null.StringFromPtr(nil)
+	body.C_{{ api.audit.updated_at }} = time.Now().Format(time.RFC3339)
 	{{~ else ~}}
 	body.C_{{ api.audit.updated_at }} = time.Now()
 	{{~ end ~}}

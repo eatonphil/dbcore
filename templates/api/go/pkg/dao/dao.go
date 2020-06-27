@@ -96,8 +96,6 @@ func ParseFilter(filter string) (*Filter, error) {
 		{{ end }}
 	})
 
-	fmt.Println(exp, filter)
-
 	if invalidValue != nil {
 		return nil, invalidValue
 	}

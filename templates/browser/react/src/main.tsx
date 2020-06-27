@@ -3,7 +3,9 @@ import ReactDOM from 'react-dom';
 import {
   BrowserRouter as Router,
   Switch,
+  {{~ if browser.default_route == '' ~}}
   Redirect,
+  {{~ end ~}}
   Route,
 } from 'react-router-dom';
 

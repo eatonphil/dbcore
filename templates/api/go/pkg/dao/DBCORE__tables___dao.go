@@ -9,42 +9,42 @@ import (
 )
 
 {{~
-  func toGoType
-    case $0.type
-      when "int", "integer"
-        if $0.nullable
-          "null.Int"
-        else
-          "int32"
-        end
-      when "bigint"
-        if $0.nullable
-          "null.Int"
-        else
-          "int64"
-        end
-      when "text", "varchar", "char"
-        if $0.nullable
-          "null.String"
-        else
-          "string"
-        end
-      when "boolean"
-        if $0.nullable
-          "null.Bool"
-        else
-          "bool"
-        end
-      when "timestamp", "timestamp with time zone"
-        if $0.nullable
-          "null.Time"
-        else
-          "time.Time"
-        end
+func toGoType
+  case $0.type
+    when "int", "integer"
+      if $0.nullable
+        "null.Int"
       else
-        "Unsupported PostgreSQL type: " + $0.type
-    end
+        "int32"
+      end
+    when "bigint"
+      if $0.nullable
+        "null.Int"
+      else
+        "int64"
+      end
+    when "text", "varchar", "char"
+      if $0.nullable
+        "null.String"
+      else
+        "string"
+      end
+    when "boolean"
+      if $0.nullable
+        "null.Bool"
+      else
+        "bool"
+      end
+    when "timestamp", "timestamp with time zone"
+      if $0.nullable
+        "null.Time"
+      else
+        "time.Time"
+      end
+    else
+      "Unsupported PostgreSQL type: " + $0.type
   end
+end
 ~}}
 
 type {{ table.label|dbcore_capitalize }} struct {
@@ -61,23 +61,22 @@ type {{ table.label|dbcore_capitalize }}PaginatedResponse struct {
 func (d DAO) {{ table.label|dbcore_capitalize }}GetMany(where *Filter, p Pagination) (*{{ table.label|dbcore_capitalize }}PaginatedResponse, error) {
 	if where == nil {
 		where = &Filter{}
-		{{ if api.audit.enabled && api.audit.deleted_at }}
+{{ if api.audit.enabled && api.audit.deleted_at }}
 		where.filter = `WHERE "{{ api.audit.deleted_at }}" IS NULL`
-		{{~ end ~}}
+{{~ end ~}}
 	} {{~ if api.audit.enabled && api.audit.deleted_at ~}} else {
 	where.filter = where.filter + ` AND
   "{{ api.audit.deleted_at }}" IS NULL`
-	}
-	{{~ end ~}}
+	}{{~ end ~}}
 
 	query := fmt.Sprintf(`
 SELECT
-  {{~ for column in table.columns ~}}
+{{~ for column in table.columns ~}}
   "{{ column.name }}"{{ if !for.last || database.dialect != "sqlite" }},{{ end }}
-  {{~ end ~}}
-  {{~ if database.dialect != "sqlite" ~}}
+{{~ end ~}}
+{{~ if database.dialect != "sqlite" ~}}
   COUNT(1) OVER() AS __total
-  {{~ end ~}}
+{{~ end ~}}
 FROM
   "{{ table.name }}" t
 %s
@@ -101,18 +100,18 @@ OFFSET %d`, where.filter, p.Order, p.Limit, p.Offset)
 
 		var row struct {
 			{{ table.label|dbcore_capitalize }}
-			{{~ if database.dialect != "sqlite" ~}}
+{{~ if database.dialect != "sqlite" ~}}
 			Total uint64 `db:"__total"`
-			{{~ end ~}}
+{{~ end ~}}
 		}
 		err := rows.StructScan(&row)
 		if err != nil {
 			return nil, fmt.Errorf("Error scanning struct: %s", err)
 		}
 
-		{{~ if database.dialect != "sqlite" ~}}
+{{~ if database.dialect != "sqlite" ~}}
 		response.Total = row.Total
-		{{~ end ~}}
+{{~ end ~}}
 		response.Data = append(response.Data, row.{{ table.label|dbcore_capitalize }})
 	}
 
@@ -140,60 +139,39 @@ ORDER BY
 }
 
 func (d DAO) {{ table.label|dbcore_capitalize }}Insert(body *{{ table.label|dbcore_capitalize }}) error {
-	{{~ if api.audit.enabled ~}}
-	{{~ if api.audit.created_at ~}}
-	{{~ if database.dialect == "sqlite" ~}}
-	now := time.Now().Format(time.RFC3339)
-	body.C_{{ api.audit.created_at }} = now
-	{{~ else ~}}
-	body.C_{{ api.audit.created_at }} = time.Now()
-	{{~ end ~}}
-	{{~ end ~}}
-
-	{{~ if api.audit.updated_at ~}}
-	{{~ if database.dialect == "sqlite" ~}}
-	body.C_{{ api.audit.updated_at }} = now
-	{{~ else ~}}
-	body.C_{{ api.audit.updated_at }} = time.Now()
-	{{~ end ~}}
-	{{~ end ~}}
-
-	{{~ if api.audit.deleted_at ~}}
-	{{~ if database.dialect == "sqlite" ~}}
-	body.C_{{ api.audit.deleted_at }} = null.StringFromPtr(nil)
-	{{~ else ~}}
-	body.C_{{ api.audit.deleted_at }} = null.TimeFromPtr(nil)
-	{{~ end ~}}
-	{{~ end ~}}
-	{{~ end ~}}
-
 	query := `
-	INSERT INTO {{ table.name }} (
-  {{~ for column in table.columns ~}}
-  {{~ if column.auto_increment
-         continue
-        end ~}}
+INSERT INTO {{ table.name }} (
+{{~ for column in table.columns_no_audit ~}}
   "{{ column.name }}"{{ if !for.last }},{{ end }}
-  {{~ end ~}})
+{{~ end ~}}
+{{~ if api.audit.enabled ~}}
+, "{{ api.audit.created_at }}", "{{ api.audit.updated_at }}"
+{{~ end ~}})
 VALUES (
-  {{~ index = 0 ~}}
-  {{~ for column in table.columns ~}}
-  {{~ if column.auto_increment
-         continue
-      end ~}}
-  {{ if database.dialect == "postgres" }}${{ index + 1 }}{{ else }}?{{ end }}{{ if !for.last }}, {{ end }}
-  {{~ index = index + 1 ~}}
-  {{~ end ~}})`
+{{~ for column in table.columns_no_audit ~}}
+  {{ if database.dialect == "postgres" }}${{ for.index + 1 }}{{ else }}?{{ end }}{{ if !for.last }}, {{ end }}
+{{~ end ~}},
+{{~ if api.audit.enabled ~}}
+{{~ if database.dialect == "sqlite" ~}}
+  DATETIME('now'),
+  DATETIME('now')
+{{~ else ~}}
+  NOW(),
+  NOW()
+{{~ end ~}}
+{{~ end ~}})`
 	d.logger.Debug(query)
 
 	{{~ if database.dialect == "postgres" ~}}
 	row := d.db.QueryRowx(query +`
 RETURNING {{ if table.primary_key.value }}{{ table.primary_key.value.column }}{{ else }}{{ table.columns[0].name }}{{ end }}
-`, {{~ for column in table.columns ~}}{{~ if column.auto_increment
-		continue
-		end ~}}body.C_{{ column.name }}{{ if !for.last }}, {{ end }}{{ end }})
+`,
+{{~ for column in table.columns_no_audit ~}}
+		body.C_{{ column.name }},
+{{~ end ~}}
+	)
 	return row.Scan(&body.C_{{ if table.primary_key.value }}{{ table.primary_key.value.column }}{{ else }}{{ table.columns[0].name }}{{ end }})
-	{{~ else if database.dialect == "mysql" || database.dialect == "sqlite" ~}}
+{{~ else if database.dialect == "mysql" || database.dialect == "sqlite" ~}}
 	stmt, err := d.db.Prepare(query)
 	if err != nil {
 		return err
@@ -201,25 +179,23 @@ RETURNING {{ if table.primary_key.value }}{{ table.primary_key.value.column }}{{
 
 	{{ if database.dialect == "mysql" || database.dialect == "sqlite" }}var res sql.Result{{ end }}
 	{{ if database.dialect == "mysql" || database.dialect == "sqlite" }}res{{ else }}_{{ end }}, err = stmt.Exec(
-		{{~ for column in table.columns ~}}
-		{{~ if column.auto_increment
-		      continue
-	            end ~}}
-		body.C_{{ column.name }}{{ if !for.last }},{{ else }}){{ end }}{{ end }}
+{{~ for column in table.columns_no_audit ~}}
+		body.C_{{ column.name }},
+{{~ end ~}})
 	if err != nil {
 		return err
 	}
 
-	{{~ if table.primary_key.value ~}}
+{{~ if table.primary_key.value ~}}
 	id, err := res.LastInsertId()
 	if err != nil {
 		return err
 	}
 
 	body.C_{{ table.primary_key.value.column }} = {{ toGoType table.primary_key.value }}(id)
-	{{~ end ~}}
+{{~ end ~}}
 	return nil
-	{{~ end ~}}
+{{~ end ~}}
 }
 
 {{ if table.primary_key.value }}
@@ -243,33 +219,35 @@ func (d DAO) {{ table.label|dbcore_capitalize }}Get(key {{ toGoType table.primar
 }
 
 func (d DAO) {{ table.label|dbcore_capitalize }}Update(key {{ toGoType table.primary_key.value }}, body {{ table.label|dbcore_capitalize }}) error {
-	{{~ if api.audit.enabled ~}}
-	{{~ if api.audit.updated_at ~}}
-	{{~ if database.dialect == "sqlite" ~}}
-	body.C_{{ api.audit.updated_at }} = time.Now().Format(time.RFC3339)
-	{{~ else ~}}
-	body.C_{{ api.audit.updated_at }} = time.Now()
-	{{~ end ~}}
-	{{~ end ~}}
-	{{~ end ~}}
-
 	query := `
 UPDATE
   "{{ table.name }}"
 SET
-  {{~ for column in table.columns ~}}
-  "{{column.name}}" = {{ if database.dialect == "postgres" }}${{ for.index + 1 }}{{ else }}?{{ end }}{{ if !for.last }},{{ end }}
-  {{~ end ~}}
+{{~ for column in table.columns_no_audit ~}}
+  "{{column.name}}" = {{ if database.dialect == "postgres" }}${{ index }}{{ else }}?{{ end }},
+{{~ end ~}}
+{{~ if database.dialect == "sqlite" ~}}
+  "{{ api.audit.updated_at }}" = DATETIME('now')
+{{~ else ~}}
+  "{{ api.audit.updated_at }}" = NOW()
+{{~ end ~}}
 WHERE
-  {{ table.primary_key.value.column }} = {{ if database.dialect == "postgres" }}${{ table.columns | array.size + 1 }}{{ else }}?{{ end }}
-`
+{{~ if database.dialect == "postgres" ~}}
+  "{{ table.primary_key.value.column }}" = ${{ table.columns_no_audit | array.size + 1 }}
+{{~ else ~}}
+  "{{ table.primary_key.value.column }}" = ?
+{{~ end ~}}`
 	d.logger.Debug(query)
 	stmt, err := d.db.Prepare(query)
 	if err != nil {
 		return nil
 	}
 
-	_, err = stmt.Exec({{ for column in table.columns }}body.C_{{ column.name }}{{ if !for.last }},{{ end }}{{ end }}, key)
+	_, err = stmt.Exec(
+{{~ for column in table.columns_no_audit ~}}
+		body.C_{{ column.name }},
+{{~ end ~}}
+		key)
 	return err
 }
 
@@ -278,7 +256,12 @@ func (d DAO) {{ table.label|dbcore_capitalize }}Delete(key {{ toGoType table.pri
 {{~ if api.audit.enabled && api.audit.deleted_at ~}}
 UPDATE
   "{{ table.name }}"
-SET "{{ api.audit.deleted_at }}" = {{ database.dialect == "sqlite" }}DATETIME('now'){{ else }}NOW(){{ end }}
+SET
+{{~ if database.dialect == "sqlite" }}
+  "{{ api.audit.deleted_at }}" = DATETIME('now')
+{{~ else ~}}
+  "{{ api.audit.deleted_at }}" = NOW()
+{{~ end ~}}
 {{~ else ~}}
 DELETE
   FROM "{{ table.name }}"

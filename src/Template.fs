@@ -13,12 +13,25 @@ let rec private getFiles(dir: string) : seq<string> =
     }
 
 
+type Table =
+    {
+        Name: string
+        Label: string
+        Columns: Database.Column[]
+        ForeignKeys: Database.Constraint[]
+        PrimaryKey: Option<Database.Constraint>
+
+        ColumnsNoAutoIncrement: Database.Column[]
+        ColumnsNoAudit: Database.Column[]
+    }
+
+
 [<NoComparison>]
 type Context =
     {
         Project: string
         Database: {| Dialect: string |}
-        Tables: Database.Table[]
+        Tables: Table[]
         Api: Config.ApiConfig
         Browser: Config.BrowserConfig
         OutDir: string

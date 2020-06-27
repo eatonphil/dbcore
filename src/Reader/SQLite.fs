@@ -69,7 +69,6 @@ type SQLite(cfg0: Config.DatabaseConfig) =
 
         {
             Name = name
-            Label = name
             Columns = columns
             ForeignKeys = foreignKeys
             PrimaryKey = primaryKey

@@ -61,12 +61,11 @@ type {{ table.name|dbcore_capitalize }}PaginatedResponse struct {
 func (d DAO) {{ table.name|dbcore_capitalize }}GetMany(where *Filter, p Pagination) (*{{ table.name|dbcore_capitalize }}PaginatedResponse, error) {
 	if where == nil {
 		where = &Filter{}
-	}
-
-	{{~ if api.audit.deleted_at ~}}
+	}{{~ if api.audit.deleted_at ~}} else {
 	// Appended to an implicit `deleted_at IS NULL` base filter.
 	where.filter = ` AND
   ` + where.filter[len("where "):]
+	}
 	{{~ end ~}}
 
 	query := fmt.Sprintf(`

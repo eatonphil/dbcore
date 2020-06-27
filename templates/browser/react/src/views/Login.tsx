@@ -51,7 +51,7 @@ export function Login() {
     } finally {
       return false;
     }
-  }, [setError]);
+  }, [setError, username, password]);
 
   return (
     <div className="flex justify-center">

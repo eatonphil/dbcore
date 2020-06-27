@@ -56,7 +56,15 @@ export function {{ table.name|dbcore_capitalize }}Update() {
     } finally {
       return false;
     }
-  }, [key]);
+  }, [
+    key,
+    {{~ for column in table.columns ~}}
+    {{~ if column.auto_increment
+          continue
+        end ~}}
+    state['{{ column.name }}'],
+    {{~ end ~}}
+  ]);
 
   const [loaded, setLoaded] = React.useState(false);
   React.useEffect(function() {

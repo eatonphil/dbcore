@@ -55,7 +55,15 @@ export function {{ table.name|dbcore_capitalize }}Create() {
     } finally {
       return false;
     }
-  }, [history]);
+  }, [
+    history,
+    {{~ for column in table.columns ~}}
+    {{~ if column.auto_increment
+          continue
+        end ~}}
+    state['{{ column.name }}'],
+    {{~ end ~}}
+  ]);
 
   return (
     <>

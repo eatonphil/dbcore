@@ -87,7 +87,10 @@ export function List<T>({
       {total === 0 ? 'No results found.' : (
         <>
           {pageInfo}
-          <div className={`grid grid-cols-${cols.length} border-l border-r border-t`}>
+          <div
+            className={`grid border-l border-r border-t overflow-x-auto`}
+            style={ { 'gridTemplateColumns': `repeat(${cols.length}, minmax(max-content, auto))` } }
+          >
             {cols.map(col => (
               <Header key={`header-${col}`} column={col} />
             ))}

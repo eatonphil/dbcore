@@ -61,7 +61,7 @@ type {{ table.label|dbcore_capitalize }}PaginatedResponse struct {
 func (d DAO) {{ table.label|dbcore_capitalize }}GetMany(where *Filter, p Pagination) (*{{ table.label|dbcore_capitalize }}PaginatedResponse, error) {
 	if where == nil {
 		where = &Filter{}
-	}{{~ if api.audit.deleted_at ~}} else {
+	}{{~ if api.audit.enabled && api.audit.deleted_at ~}} else {
 	// Appended to an implicit `deleted_at IS NULL` base filter.
 	where.filter = ` AND
   ` + where.filter[len("where "):]
@@ -78,7 +78,7 @@ SELECT
   {{~ end ~}}
 FROM
   "{{ table.name }}" t
-{{~ if api.audit.deleted_at ~}}
+{{~ if api.audit.enabled && api.audit.deleted_at ~}}
 WHERE
   "{{ api.audit.deleted_at }}" IS NULL{{~ end ~}} %s
 ORDER BY
@@ -140,6 +140,7 @@ ORDER BY
 }
 
 func (d DAO) {{ table.label|dbcore_capitalize }}Insert(body *{{ table.label|dbcore_capitalize }}) error {
+	{{~ if api.audit.enabled ~}}
 	{{~ if api.audit.created_at ~}}
 	{{~ if database.dialect == "sqlite" ~}}
 	now := time.Now().Format(time.RFC3339)
@@ -162,6 +163,7 @@ func (d DAO) {{ table.label|dbcore_capitalize }}Insert(body *{{ table.label|dbco
 	body.C_{{ api.audit.updated_at }} = null.StringFromPtr(nil)
 	{{~ else ~}}
 	body.C_{{ api.audit.deleted_at }} = null.TimeFromPtr(nil)
+	{{~ end ~}}
 	{{~ end ~}}
 	{{~ end ~}}
 
@@ -241,11 +243,13 @@ func (d DAO) {{ table.label|dbcore_capitalize }}Get(key {{ toGoType table.primar
 }
 
 func (d DAO) {{ table.label|dbcore_capitalize }}Update(key {{ toGoType table.primary_key.value }}, body {{ table.label|dbcore_capitalize }}) error {
+	{{~ if api.audit.enabled ~}}
 	{{~ if api.audit.updated_at ~}}
 	{{~ if database.dialect == "sqlite" ~}}
 	body.C_{{ api.audit.updated_at }} = null.StringFromPtr(nil)
 	{{~ else ~}}
 	body.C_{{ api.audit.updated_at }} = time.Now()
+	{{~ end ~}}
 	{{~ end ~}}
 	{{~ end ~}}
 
@@ -271,7 +275,7 @@ WHERE
 
 func (d DAO) {{ table.label|dbcore_capitalize }}Delete(key {{ toGoType table.primary_key.value }}) error {
 	query := `
-{{~ if api.audit.deleted_at ~}}
+{{~ if api.audit.enabled && api.audit.deleted_at ~}}
 UPDATE
   "{{ table.name }}"
 SET "{{ api.audit.deleted_at }}" = {{ database.dialect == "sqlite" }}DATETIME('now'){{ else }}NOW(){{ end }}

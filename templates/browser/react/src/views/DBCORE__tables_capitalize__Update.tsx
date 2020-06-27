@@ -40,7 +40,7 @@ export function {{ table.label|dbcore_capitalize }}Update() {
     try {
       const rsp = await request(`{{ table.label }}/${key}`, {
         {{~ for column in table.columns ~}}
-        {{~ if column.auto_increment || ([api.audit.created_at, api.audit.updated_at, api.audit.deleted_at] | array.contains column.name)
+        {{~ if column.auto_increment || (api.audit.enabled && ([api.audit.created_at, api.audit.updated_at, api.audit.deleted_at] | array.contains column.name))
               continue
             end ~}}
         '{{ column.name }}': {{ javascriptValueify column.type }}(state['{{ column.name }}']),
@@ -99,7 +99,7 @@ export function {{ table.label|dbcore_capitalize }}Update() {
             end ~}}
         <div className="mb-4">
           <Input
-            disabled={ {{ [api.audit.created_at, api.audit.updated_at, api.audit.deleted_at] | array.contains column.name }} }
+            disabled={ {{ api.audit.enabled && ([api.audit.created_at, api.audit.updated_at, api.audit.deleted_at] | array.contains column.name) }} }
             label="{{ column.name }}"
             id="{{ column.name }}"
             value={state['{{ column.name }}']}

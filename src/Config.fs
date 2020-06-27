@@ -74,6 +74,7 @@ type ApiEndpointConfig() =
 
 
 type ApiAuditConfig() =
+    member val Enabled = false with get, set
     member val CreatedAt = "" with get, set
     member val UpdatedAt = "" with get, set
     member val DeletedAt = "" with get, set

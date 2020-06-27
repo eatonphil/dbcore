@@ -54,12 +54,12 @@ let private writeProjectToDisk(sourceDir: string, outDir: string, ctx: Context) 
                 ("tables_capitalize",
                  fun (path: string, sub: string) ->
                      [ for t in ctx.Tables do
-                           yield (path.Replace(sub, ti.ToTitleCase(t.Name)),
+                           yield (path.Replace(sub, ti.ToTitleCase(t.Label)),
                                   {| ctx with Table = t |}) ]);
                 ("tables",
                  fun (path: string, sub: string) ->
                      [ for t in ctx.Tables do
-                           yield (path.Replace(sub, t.Name),
+                           yield (path.Replace(sub, t.Label),
                                   {| ctx with Table = t |}) ]);
                 ("",
                  fun (path: string, sub: string) ->

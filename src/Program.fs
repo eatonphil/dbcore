@@ -13,7 +13,14 @@ let main (args: string []): int =
     if cfg.Database.Dialect = "sqlite" then
         cfg.Database.Database <- Path.Combine(projectDir, cfg.Database.Database)
     let db = Reader.Reader(cfg.Database)
-    let tables = db.GetTables()
+    let tables =
+        [|
+            for table in db.GetTables() do
+                let mutable overrideT = table
+                for t in cfg.Database.Tables do
+                    if t.Name = table.Name then overrideT <- { table with Label = t.Label }
+                overrideT
+        |]
 
     let ctx: Template.Context = {
         Project = cfg.Project

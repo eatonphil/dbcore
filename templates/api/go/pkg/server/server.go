@@ -34,13 +34,13 @@ type Server struct {
 
 func (s Server) registerControllers() {
 	{{~ for table in tables ~}}
-	// Register {{table.name}} routes
-	s.router.GET("/{{ api.router_prefix }}{{ table.name }}", s.{{table.name}}GetManyController)
-	s.router.POST("/{{ api.router_prefix }}{{ table.name }}", s.{{table.name}}CreateController)
+	// Register {{table.label}} routes
+	s.router.GET("/{{ api.router_prefix }}{{ table.label }}", s.{{table.label}}GetManyController)
+	s.router.POST("/{{ api.router_prefix }}{{ table.label }}", s.{{table.label}}CreateController)
 	{{~ if table.primary_key.value ~}}
-	s.router.GET("/{{ api.router_prefix }}{{ table.name }}/:key", s.{{table.name}}GetController)
-	s.router.PUT("/{{ api.router_prefix }}{{ table.name }}/:key", s.{{table.name}}UpdateController)
-	s.router.DELETE("/{{ api.router_prefix }}{{ table.name }}/:key", s.{{table.name}}DeleteController)
+	s.router.GET("/{{ api.router_prefix }}{{ table.label }}/:key", s.{{table.label}}GetController)
+	s.router.PUT("/{{ api.router_prefix }}{{ table.label }}/:key", s.{{table.label}}UpdateController)
+	s.router.DELETE("/{{ api.router_prefix }}{{ table.label }}/:key", s.{{table.label}}DeleteController)
 	{{~ end ~}}
 	{{ end }}
 

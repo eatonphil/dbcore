@@ -11,20 +11,20 @@ import (
 	"{{ api.extra.repo }}/{{ out_dir }}/pkg/dao"
 )
 
-func (s Server) {{ table.name }}GetManyController(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+func (s Server) {{ table.label }}GetManyController(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	filter, pageInfo, err := getFilterAndPageInfo(r)
 	if err != nil {
 		sendErrorResponse(w, err)
 		return
 	}
 
-	result, err := s.dao.{{ table.name|dbcore_capitalize }}GetMany(filter, *pageInfo)
+	result, err := s.dao.{{ table.label|dbcore_capitalize }}GetMany(filter, *pageInfo)
 	if err != nil {
 		sendErrorResponse(w, err)
 		return
 	}
 
-	{{ if table.name == api.auth.table }}
+	{{ if table.label == api.auth.table }}
 	for i, _ := range result.Data {
 		result.Data[i].C_{{ api.auth.password }} = "<REDACTED>"
 	}
@@ -33,8 +33,8 @@ func (s Server) {{ table.name }}GetManyController(w http.ResponseWriter, r *http
 	sendResponse(w, result)
 }
 
-func (s Server) {{ table.name }}CreateController(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	var body dao.{{ table.name|dbcore_capitalize }}
+func (s Server) {{ table.label }}CreateController(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+	var body dao.{{ table.label|dbcore_capitalize }}
 	err := getBody(r, &body)
 	if err != nil {
 		s.logger.Debug("Expected valid JSON, got: %s", err)
@@ -42,19 +42,19 @@ func (s Server) {{ table.name }}CreateController(w http.ResponseWriter, r *http.
 		return
 	}
 
-	{{ if api.auth.enabled && table.name == api.auth.table }}
+	{{ if api.auth.enabled && table.label == api.auth.table }}
 	hash, err := bcrypt.GenerateFromPassword(
 		[]byte(body.C_{{ api.auth.password }}), bcrypt.DefaultCost)
 	body.C_{{ api.auth.password }} = string(hash)
 	{{ end }}
 
-	err = s.dao.{{ table.name|dbcore_capitalize }}Insert(&body)
+	err = s.dao.{{ table.label|dbcore_capitalize }}Insert(&body)
 	if err != nil {
 		sendErrorResponse(w, err)
 		return
 	}
 
-	{{ if table.name == api.auth.table }}
+	{{ if table.label == api.auth.table }}
 	body.C_{{ api.auth.password }} = "<REDACTED>"
 	{{ end }}
 
@@ -81,7 +81,7 @@ func (s Server) {{ table.name }}CreateController(w http.ResponseWriter, r *http.
   end
 ~}}
 
-func parse{{ table.name|dbcore_capitalize }}Key(key string) {{ toGoType table.primary_key.value.type }} {
+func parse{{ table.label|dbcore_capitalize }}Key(key string) {{ toGoType table.primary_key.value.type }} {
 {{~
   case table.primary_key.value.type
     when "text", "varchar", "char"
@@ -100,23 +100,23 @@ func parse{{ table.name|dbcore_capitalize }}Key(key string) {{ toGoType table.pr
 ~}}
 }
 
-func (s Server) {{ table.name }}GetController(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	k := parse{{ table.name|dbcore_capitalize }}Key(ps.ByName("key"))
-	result, err := s.dao.{{ table.name|dbcore_capitalize }}Get(k)
+func (s Server) {{ table.label }}GetController(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	k := parse{{ table.label|dbcore_capitalize }}Key(ps.ByName("key"))
+	result, err := s.dao.{{ table.label|dbcore_capitalize }}Get(k)
 	if err != nil {
 		sendErrorResponse(w, err)
 		return
 	}
 
-	{{ if table.name == api.auth.table }}
+	{{ if table.label == api.auth.table }}
 	result.C_{{ api.auth.password }} = "<REDACTED>"
 	{{ end }}
 
 	sendResponse(w, result)
 }
 
-func (s Server) {{ table.name }}UpdateController(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	var body dao.{{ table.name|dbcore_capitalize }}
+func (s Server) {{ table.label }}UpdateController(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	var body dao.{{ table.label|dbcore_capitalize }}
 	err := getBody(r, &body)
 	if err != nil {
 		s.logger.Debug("Expected valid JSON, got: %s", err)
@@ -124,9 +124,9 @@ func (s Server) {{ table.name }}UpdateController(w http.ResponseWriter, r *http.
 		return
 	}
 
-	k := parse{{ table.name|dbcore_capitalize }}Key(ps.ByName("key"))
-	{{ if api.auth.enabled && table.name == api.auth.table }}
-	result, err := s.dao.{{ table.name|dbcore_capitalize }}Get(k)
+	k := parse{{ table.label|dbcore_capitalize }}Key(ps.ByName("key"))
+	{{ if api.auth.enabled && table.label == api.auth.table }}
+	result, err := s.dao.{{ table.label|dbcore_capitalize }}Get(k)
 	if err != nil {
 		sendErrorResponse(w, err)
 		return
@@ -136,22 +136,22 @@ func (s Server) {{ table.name }}UpdateController(w http.ResponseWriter, r *http.
 	{{ end }}
 
 	body.C_{{ table.primary_key.value.column }} = k
-	err = s.dao.{{ table.name|dbcore_capitalize }}Update(k, body)
+	err = s.dao.{{ table.label|dbcore_capitalize }}Update(k, body)
 	if err != nil {
 		sendErrorResponse(w, err)
 		return
 	}
 
-	{{ if table.name == api.auth.table }}
+	{{ if table.label == api.auth.table }}
 	body.C_{{ api.auth.password }} = "<REDACTED>"
 	{{ end }}
 
 	sendResponse(w, body)
 }
 
-func (s Server) {{ table.name }}DeleteController(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	k := parse{{ table.name|dbcore_capitalize }}Key(ps.ByName("key"))
-	err := s.dao.{{ table.name|dbcore_capitalize }}Delete(k)
+func (s Server) {{ table.label }}DeleteController(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	k := parse{{ table.label|dbcore_capitalize }}Key(ps.ByName("key"))
+	err := s.dao.{{ table.label|dbcore_capitalize }}Delete(k)
 	if err != nil {
 		sendErrorResponse(w, err)
 		return

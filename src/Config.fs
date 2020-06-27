@@ -7,6 +7,17 @@ open YamlDotNet.Serialization
 open YamlDotNet.Serialization.NamingConventions
 
 
+type DatabaseTableConfig() =
+    let mutable label = ""
+
+    member val Name = "" with get, set
+
+    member this.Label
+        with get() : string =
+            if label <> "" then label else this.Name
+        and set(value: string) = label <- value
+
+
 type DatabaseConfig() =
     let mutable port = ""
     let mutable schema = ""
@@ -16,6 +27,8 @@ type DatabaseConfig() =
     member val Database = "" with get, set
     member val Username = "" with get, set
     member val Password = "" with get, set
+
+    member val Tables: array<DatabaseTableConfig> = [||] with get, set
 
     member this.Schema
         with get() : string =
@@ -88,6 +101,8 @@ type BrowserConfig() =
     interface IConfig with
         member val OutDir = "browser" with get, set
         member val Template = "react" with get, set
+
+    member val DefaultRoute = "" with get, set
 
 
 type CustomConfig() =

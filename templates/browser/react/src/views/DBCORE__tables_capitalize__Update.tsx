@@ -20,7 +20,7 @@ import { request } from '../api';
   end
 ~}}
 
-export function {{ table.name|dbcore_capitalize }}Update() {
+export function {{ table.label|dbcore_capitalize }}Update() {
   const [state, setState] = React.useState<{ [key: string]: string }>({
     {{~ for column in table.columns ~}}
     {{~ if column.auto_increment
@@ -38,7 +38,7 @@ export function {{ table.name|dbcore_capitalize }}Update() {
     setError('');
 
     try {
-      const rsp = await request(`{{ table.name }}/${key}`, {
+      const rsp = await request(`{{ table.label }}/${key}`, {
         {{~ for column in table.columns ~}}
         {{~ if column.auto_increment
               continue
@@ -52,7 +52,7 @@ export function {{ table.name|dbcore_capitalize }}Update() {
         return false;
       }
 
-      history.push(`/{{ table.name }}/_/${key}`);
+      history.push(`/{{ table.label }}/_/${key}`);
     } finally {
       return false;
     }
@@ -70,7 +70,7 @@ export function {{ table.name|dbcore_capitalize }}Update() {
   React.useEffect(function() {
     async function fetchRow() {
       setError(error);
-      const rsp = await request(`{{ table.name }}/${key}`);
+      const rsp = await request(`{{ table.label }}/${key}`);
 
       if (rsp.error) {
         setError(rsp.error);
@@ -90,11 +90,11 @@ export function {{ table.name|dbcore_capitalize }}Update() {
 
   return (
     <>
-      <Link to="/{{ table.name }}">{{ table.name|dbcore_capitalize }}</Link> / {key}
+      <Link to="/{{ table.label }}">{{ table.label|dbcore_capitalize }}</Link> / {key}
       <Heading size="xl">Update</Heading>
       <Form error={error} buttonText="Update" onSubmit={handleSubmit}>
         {{~ for column in table.columns ~}}
-        {{~ if column.auto_increment
+        {{~ if column.auto_increment || ([api.audit.created_at, api.audit.updated_at, api.audit.deleted_at] | array.contains column.name)
               continue
             end ~}}
         <div className="mb-4">

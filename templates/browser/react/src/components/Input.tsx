@@ -5,6 +5,7 @@ interface Props extends React.HTMLProps<HTMLInputElement> {
 }
 
 export function Input({
+  disabled,
   label,
   id,
   onChange: handleChange,
@@ -18,6 +19,7 @@ export function Input({
     >
       {label}
       <input
+        disabled={disabled}
         className="border rounded w-full py-2 px-3 text-gray-700 mb-3 leading-tight"
         type={type}
         id={id}

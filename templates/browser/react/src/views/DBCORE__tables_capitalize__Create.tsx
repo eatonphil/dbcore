@@ -39,7 +39,7 @@ export function {{ table.label|dbcore_capitalize }}Create() {
     try {
       const rsp = await request('{{ table.label }}', {
         {{~ for column in table.columns ~}}
-        {{~ if column.auto_increment
+        {{~ if column.auto_increment || ([api.audit.created_at, api.audit.updated_at, api.audit.deleted_at] | array.contains column.name)
               continue
             end ~}}
         '{{ column.name }}': {{ javascriptValueify column.type }}(state['{{ column.name }}']),

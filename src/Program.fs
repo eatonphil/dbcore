@@ -1,6 +1,5 @@
 ﻿open System.IO
 
-
 [<EntryPoint>]
 let main (args: string []): int =
     let projectDir = if args.Length > 0
@@ -13,13 +12,37 @@ let main (args: string []): int =
     if cfg.Database.Dialect = "sqlite" then
         cfg.Database.Database <- Path.Combine(projectDir, cfg.Database.Database)
     let db = Reader.Reader(cfg.Database)
-    let tables =
+    let tables: Template.Table[] =
+        let notAuditOrAutoIncrement(c: Database.Column) : bool =
+            if c.AutoIncrement then false
+                else if not cfg.Api.Audit.Enabled then true
+                    else if (c.Name = cfg.Api.Audit.CreatedAt ||
+                             c.Name = cfg.Api.Audit.UpdatedAt ||
+                             c.Name = cfg.Api.Audit.DeletedAt) then false
+                        else true
+
+        let notAutoIncrement(c: Database.Column) : bool = not c.AutoIncrement
+
         [|
             for table in db.GetTables() do
-                let mutable overrideT = table
+                let mutable label = table.Name
                 for t in cfg.Database.Tables do
-                    if t.Name = table.Name then overrideT <- { table with Label = t.Label }
-                overrideT
+                    if t.Name = table.Name then label <- t.Label
+
+                let columnsNoAudit = table.Columns |> Array.filter notAuditOrAutoIncrement
+                let columnsNoAutoIncrement = table.Columns |> Array.filter notAutoIncrement
+
+                let t: Template.Table = {
+                    Label = label
+                    Name = table.Name
+                    Columns = table.Columns
+                    ForeignKeys = table.ForeignKeys
+                    PrimaryKey = table.PrimaryKey
+
+                    ColumnsNoAutoIncrement = columnsNoAutoIncrement
+                    ColumnsNoAudit = columnsNoAudit
+                }
+                t
         |]
 
     let ctx: Template.Context = {

@@ -22,7 +22,6 @@ type Constraint =
 type Table =
     {
         Name: string
-        Label: string
         Columns: Column[]
         ForeignKeys: Constraint[]
         PrimaryKey: Option<Constraint>

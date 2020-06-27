@@ -8,7 +8,9 @@ import {
 } from 'react-router-dom';
 
 import { Header } from './components/Header';
+{{ if browser.defaultRoute == '' }}
 import { Home } from './views/Home';
+{{ end }}
 {{ if api.auth.enabled }}
 import { Login, Logout } from './views/Login';
 {{ end }}

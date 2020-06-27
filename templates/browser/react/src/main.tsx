@@ -8,7 +8,7 @@ import {
 } from 'react-router-dom';
 
 import { Header } from './components/Header';
-{{ if browser.defaultRoute == '' }}
+{{ if browser.default_route == '' }}
 import { Home } from './views/Home';
 {{ end }}
 {{ if api.auth.enabled }}
@@ -56,10 +56,10 @@ function App() {
         <div className="container mx-auto">
           <Switch>
             <Route exact path="/">
-              {{~ if browser.default_view == "" ~}}
+              {{~ if browser.default_route == "" ~}}
               <Home />
               {{~ else ~}}
-              <Redirect to={ { pathname: '/{{ browser.default_view }}' } } />
+              <Redirect to={ { pathname: '/{{ browser.default_route }}' } } />
               {{~ end ~}}
             </Route>
             {{ if api.auth.enabled }}

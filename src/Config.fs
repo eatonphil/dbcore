@@ -55,15 +55,18 @@ type IConfig =
     abstract member Template : string with get, set
 
 
+type ApiAuthFilterConfig() =
+    member val Get = "" with get, set
+    member val Put = "" with get, set
+    member val Post = "" with get, set
+    member val Delete = "" with get, set
+
 type ApiAuthConfig() =
     member val Enabled = false with get, set
     member val Table = "users" with get, set
     member val Username = "username" with get, set
     member val Password = "password" with get, set
-
-
-type ApiEndpointMethodConfig() =
-    member val Filter = "" with get, set
+    member val Filter = Dictionary<string, ApiAuthFilterConfig>() with get, set
 
 
 type ApiEndpointConfig() =
@@ -87,7 +90,6 @@ type ApiConfig() =
 
     member val Auth = ApiAuthConfig() with get, set
     member val RouterPrefix = "" with get, set
-    member val Endpoints = Dictionary<string, ApiEndpointConfig>() with get, set
     member val Extra = Dictionary<string, obj>() with get, set
 
     member val Audit = ApiAuditConfig() with get, set

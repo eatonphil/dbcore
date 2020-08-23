@@ -8,30 +8,31 @@ api:
   routerPrefix: v1/
   auth:
     enabled: true
+    filter:
+      notes:
+        # Must be public or tied to the current user's organization.
+        get: (notes [is_public] + notes [organization = (users [id = $user_id] {id})]) [id = $object_id]
+        # Must be created by the user or tied to the current user's organization and an admin.
+        put: &ownedOrOrgAdmin (notes [created_by = $user_id] + notes [organization = (users [id = $user_id & is_admin] {id})]) [id = $object_id]
+        # Same as edit (put)
+        delete: *ownedOrOrgAdmin
+        # Must be in the same org
+        post: notes [organization = (users [id = $user_id] {id})]
+      users:
+        # Must be in the same org
+        get: users [organization = (users [id = $user_id] {id})]
+        put: users [organization = (users [id = $user_id] {id})]
+        delete: &inOrgandIsadmin users [organization = (users [id = $user_id] {id}) & is_admin]
+        post: *inOrgandIsadmin
+      organizations:
+        get: *inOrg
+        put: *inOrgAndIsAdmin
+        delete: *inOrgandIsadmin
   audit:
     enabled: true
     createdAt: created_at
     updatedAt: updated_at
     deletedAt: deleted_at
-  endpoints:
-    notes:
-      get:
-        filter: $session.is_admin or $session.user_id = notes.created_by or notes.is_public
-      put:
-        filter: $session.is_admin or $session.user_id = $request.created_by
-      delete:
-        filter: $session.is_admin or $session.user_id = $request.created_by
-      post:
-        filter: $session.exists
-    users:
-      get:
-        filter: $session.is_admin or $session.user_id = users.id
-      put:
-        filter: $session.is_admin or $session.user_id = $request.id
-      delete:
-        filter: $session.is_admin or $session.user_id = $request.id
-      post:
-        filter: $session.exists
   extra:
     repo: github.com/eatonphil/dbcore-todo
 

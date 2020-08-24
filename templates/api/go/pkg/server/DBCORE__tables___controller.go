@@ -13,7 +13,7 @@ import (
 
 func (s Server) {{ table.label }}RequestIsAllowed(r *http.Request, baseFilter string, objectId interface{}) bool {
 	context := map[string]interface{}{
-		"req_user_id": s.getSessionUsername(r),
+		"req_username": s.getSessionUsername(r),
 		"req_object_id": objectId,
 	}
 	return s.dao.IsAllowed("{{ table.name }}", baseFilter, context)
@@ -28,7 +28,7 @@ func (s Server) {{ table.label }}GetManyController(w http.ResponseWriter, r *htt
 
 	baseFilter := `{{~ (api.auth.allow[table.name] | object.default {}).get | object.default "" ~}}`
 	baseContext := map[string]interface{}{
-		"req_user_id": s.getSessionUsername(r),
+		"req_username": s.getSessionUsername(r),
 	}
 	filter, err := dao.ParseFilterWithContext(baseFilter, baseContext)
 	if err != nil {
@@ -104,7 +104,7 @@ func (s Server) {{ table.label }}CreateController(w http.ResponseWriter, r *http
       when "timestamp", "timestamp with time zone"
         "time.Time"
       else
-        "Unsupported PostgreSQL type: " + $0
+        "Unsupported type: " + $0
     end
   end
 ~}}

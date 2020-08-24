@@ -22,7 +22,7 @@ func (s Server) SessionStartController(w http.ResponseWriter, r *http.Request, _
 
 	err := getBody(r, &userPass)
 	if err != nil {
-		sendValidationErrorResponse(w, fmt.Sprintf(`Expected username and password in body, got: %s`, err))
+		sendValidationErrorResponse(w, fmt.Sprintf("Expected username and password in body, got: %s", err))
 		return
 	}
 
@@ -31,11 +31,11 @@ func (s Server) SessionStartController(w http.ResponseWriter, r *http.Request, _
 		return
 	}
 
-	q := fmt.Sprintf(`{{ api.auth.username }} = '%s'`, userPass.Username)
+	q := fmt.Sprintf("{{ api.auth.username }} = '%s'", userPass.Username)
 	filter, err := dao.ParseFilter(q)
 	if err != nil {
 		s.logger.Debugf("Error while parsing {{ api.auth.username }}: %s", err)
-		sendValidationErrorResponse(w, `Expected valid username`)
+		sendValidationErrorResponse(w, "Expected valid username")
 		return
 	}
 
@@ -47,14 +47,14 @@ func (s Server) SessionStartController(w http.ResponseWriter, r *http.Request, _
 	}
 
 	if result.Total == 0 {
-		sendValidationErrorResponse(w, `Invalid username or password`)
+		sendValidationErrorResponse(w, "Invalid username or password")
 		return
 	}
 
 	user := result.Data[0]
 	err = bcrypt.CompareHashAndPassword([]byte(user.C_{{ api.auth.password }}), []byte(userPass.Password))
 	if err != nil {
-		sendValidationErrorResponse(w, `Invalid username or password`)
+		sendValidationErrorResponse(w, "Invalid username or password")
 		return
 	}
 

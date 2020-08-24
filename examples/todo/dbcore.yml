@@ -12,49 +12,59 @@ api:
       notes:
         # Must be public or tied to the current user's organization.
         get: |
-          is_public OR
-          organization IN (
+          is_public IS TRUE OR
+          created_by IN (
             SELECT id
-            FROM organizations o
-            JOIN users u ON u.organization = o.id
-            WHERE u.id = $req_user_id
+            FROM users
+            WHERE organization IN (
+              SELECT organization
+              FROM users
+              WHERE username = $req_username
+            )
           )
         # Must be created by the user or tied to the current user's organization and an admin.
         put: &ownedOrOrgAdmin |
-          created_by = $req_user_id OR
-          organization IN (
+          created_by = $req_username OR
+          created_by IN (
             SELECT id
-            FROM organizations o
-            JOIN users u ON u.organization = o.id
-            WHERE u.id = $req_user_id AND u.is_admin
+            FROM users
+            WHERE
+              organization IN (
+                SELECT organization
+                FROM users
+                WHERE username = $req_username
+              ) AND
+              is_admin IS TRUE
           )
         # Same as edit (put)
         delete: *ownedOrOrgAdmin
         # Must be in the same org
         post: |
-          organization IN (
-            SELECT id
-            FROM organizations o
-            JOIN users u ON u.organization = o.id
-            WHERE u.id = $req_user_id
-          )
+          SELECT id
+          FROM users
+          WHERE
+            organization IN (
+              SELECT organization
+              FROM users
+              WHERE username = $req_username
+            )
       users:
         # Must be in the same org
         get: &inOrg |
           organization IN (
-            SELECT id
+            SELECT o.id
             FROM organizations o
             JOIN users u ON u.organization = o.id
-            WHERE u.id = $req_user_id
+            WHERE u.username = $req_username
           )
         put: *inOrg
         delete: &inOrgandIsadmin |
-          created_by = $req_user_id OR
+          created_by = $req_username OR
           organization IN (
-            SELECT id
+            SELECT o.id
             FROM organizations o
             JOIN users u ON organization = o.id
-            WHERE u.id = $req_user_id AND u.is_admin
+            WHERE u.username = $req_username AND u.is_admin IS TRUE
           )
         post: *inOrgandIsadmin
       organizations:
@@ -63,14 +73,14 @@ api:
             SELECT o.id
             FROM organizations o
             JOIN users u ON u.organization = o.id
-            WHERE u.id = $req_user_id
+            WHERE u.username = $req_username
           )
         put: &inOrgAndIsAdmin |
           id IN (
             SELECT o.id
             FROM organizations o
             JOIN users u ON u.organization = o.id
-            WHERE u.id = $req_user_id AND u.is_admin
+            WHERE u.username = $req_username AND u.is_admin IS TRUE
           )
         delete: *inOrgandIsadmin
   audit:

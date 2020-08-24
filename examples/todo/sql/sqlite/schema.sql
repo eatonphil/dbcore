@@ -1,6 +1,6 @@
 CREATE TABLE organizations (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  name TEXT NOT NULL,
+  name TEXT NOT NULL
 );
 
 CREATE TABLE users (
@@ -12,6 +12,7 @@ CREATE TABLE users (
   updated_at TEXT NOT NULL,
   deleted_at TEXT,
   organization INTEGER NOT NULL,
+  is_admin INTEGER NOT NULL,
   FOREIGN KEY (organization) REFERENCES organizations (id)
 );
 
@@ -22,5 +23,6 @@ CREATE TABLE notes (
   created_at TEXT NOT NULL,
   updated_at TEXT NOT NULL,
   deleted_at TEXT,
+  is_public INTEGER NOT NULL,
   FOREIGN KEY (created_by) REFERENCES users (id)
 );

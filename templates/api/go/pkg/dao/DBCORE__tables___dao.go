@@ -42,7 +42,7 @@ func toGoType
         "time.Time"
       end
     else
-      "Unsupported PostgreSQL type: " + $0.type
+      "Unsupported type: " + $0.type
   end
 end
 ~}}

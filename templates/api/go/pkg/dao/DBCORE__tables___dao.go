@@ -58,7 +58,11 @@ type {{ table.label|dbcore_capitalize }}PaginatedResponse struct {
 	Data []{{ table.label|dbcore_capitalize }} `json:"data"`
 }
 
-func (d DAO) {{ table.label|dbcore_capitalize }}GetMany(where *Filter, p Pagination) (*{{ table.label|dbcore_capitalize }}PaginatedResponse, error) {
+func (d DAO) {{ table.label|dbcore_capitalize }}GetMany(
+	where *Filter,
+	p Pagination,
+	baseFilter *Filter,
+) (*{{ table.label|dbcore_capitalize }}PaginatedResponse, error) {
 	if where == nil {
 		where = &Filter{}
 {{ if api.audit.enabled && api.audit.deleted_at }}
@@ -68,6 +72,14 @@ func (d DAO) {{ table.label|dbcore_capitalize }}GetMany(where *Filter, p Paginat
 	where.filter = where.filter + ` AND
   "{{ api.audit.deleted_at }}" IS NULL`
 	}{{~ end ~}}
+
+	{{~ if api.auth.enabled ~}}
+	if baseFilter != nil {
+		// Combine base filter and where filter strings and args
+		where.filter = where.filter + " AND " + baseFilter.filter[len("WHERE "):]
+		where.args = append(where.args, baseFilter.args...)
+	}
+	{{~ end ~}}
 
 	query := fmt.Sprintf(`
 SELECT
@@ -206,7 +218,8 @@ func (d DAO) {{ table.label|dbcore_capitalize }}Get(key {{ toGoType table.primar
 		Offset: 0,
 		Order: fmt.Sprintf("{{ table.primary_key.value.column }} DESC"),
 	}
-	r, err := d.{{ table.label|dbcore_capitalize }}GetMany(where, pagination)
+
+	r, err := d.{{ table.label|dbcore_capitalize }}GetMany(where, pagination, nil)
 	if err != nil {
 		return nil, err
 	}

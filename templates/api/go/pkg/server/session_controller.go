@@ -40,7 +40,7 @@ func (s Server) SessionStartController(w http.ResponseWriter, r *http.Request, _
 	}
 
 	pageInfo := dao.Pagination{Offset: 0, Limit: 1, Order: `"{{ api.auth.username }}" DESC`}
-	result, err := s.dao.{{ api.auth.table|dbcore_capitalize }}GetMany(filter, pageInfo)
+	result, err := s.dao.{{ api.auth.table|dbcore_capitalize }}GetMany(filter, pageInfo, nil)
 	if err != nil {
 		sendErrorResponse(w, err)
 		return

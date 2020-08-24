@@ -68,7 +68,7 @@ func (s Server) registerSigintHandler(srv *http.Server) {
 }
 
 func (s Server) handlePanic(w http.ResponseWriter, r *http.Request, err interface{}) {
-	s.logger.Warn(err)
+	s.logger.Warnf("Unexpected panic: %s", err)
 	sendErrorResponse(w, fmt.Errorf("Internal server error"))
 }
 

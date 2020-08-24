@@ -11,6 +11,57 @@ import (
 	"{{ api.extra.repo }}/{{ out_dir }}/pkg/dao"
 )
 
+func (s Server) getSessionUsername(r *http.Request) string {
+	cookie, err := r.Cookie("au")
+	if err != nil {
+		// Fall back to header check
+		cookie = &http.Cookie{}
+	}
+
+	token := cookie.Value
+	if token == "" {
+		authHeader := r.Header.Get("Authorization")
+		if len(authHeader) > len("bearer ") &&
+			strings.ToLower(authHeader[:len("bearer ")]) == "bearer " {
+			token = authHeader[len("bearer "):]
+		}
+	}
+
+	t, err := jwt.Parse(token, func(t *jwt.Token) (interface{}, error) {
+		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("Unexpected signing method: %v", t.Header["alg"])
+		}
+
+		return []byte(s.secret), nil
+	})
+	if err != nil {
+		s.logger.Debugf("Error parsing JWT: %s", err)
+		return ""
+	}
+
+	claims, ok := t.Claims.(jwt.MapClaims)
+	if !(ok && t.Valid) {
+		return ""
+	}
+
+	if err := claims.Valid(); err != nil {
+		s.logger.Debugf("Invalid claims: %s", err)
+		return ""
+	}
+
+	usernameInterface, ok := claims["username"]
+	if !ok {
+		return ""
+	}
+
+	username, ok := usernameInterface.(string)
+	if !ok {
+		return ""
+	}
+
+	return username
+}
+
 func (s Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	s.logger.Infof("%s %s", r.Method, r.URL.RequestURI())
 	w.Header().Set("Content-Type", "application/json")
@@ -35,53 +86,8 @@ func (s Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cookie, err := r.Cookie("au")
-	if err != nil {
-		// Fall back to header check
-		cookie = &http.Cookie{}
-	}
-
-	token := cookie.Value
-	if token == "" {
-		authHeader := r.Header.Get("Authorization")
-		if len(authHeader) > len("bearer ") &&
-			strings.ToLower(authHeader[:len("bearer ")]) == "bearer " {
-			token = authHeader[len("bearer "):]
-		}
-	}
-
 	authorized := func() bool {
-		t, err := jwt.Parse(token, func(t *jwt.Token) (interface{}, error) {
-			if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
-				return nil, fmt.Errorf("Unexpected signing method: %v", t.Header["alg"])
-			}
-
-			return []byte(s.secret), nil
-		})
-		if err != nil {
-			s.logger.Debugf("Error parsing JWT: %s", err)
-			return false
-		}
-
-		claims, ok := t.Claims.(jwt.MapClaims)
-		if !(ok && t.Valid) {
-			return false
-		}
-
-		if err := claims.Valid(); err != nil {
-			s.logger.Debugf("Invalid claims: %s", err)
-			return false
-		}
-
-		usernameInterface, ok := claims["username"]
-		if !ok {
-			return false
-		}
-
-		username, ok := usernameInterface.(string)
-		if !ok {
-			return false
-		}
+		username := s.getSessionUsername(r)
 
 		filter, err := dao.ParseFilter(fmt.Sprintf("{{ api.auth.username }} = '%s'", username))
 		if err != nil {
@@ -90,7 +96,7 @@ func (s Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 
 		pageInfo := dao.Pagination{Offset: 0, Limit: 1, Order: `"{{ api.auth.username }}" DESC`}
-		result, err := s.dao.{{ api.auth.table|dbcore_capitalize }}GetMany(filter, pageInfo)
+		result, err := s.dao.{{ api.auth.table|dbcore_capitalize }}GetMany(filter, pageInfo, nil)
 		if err != nil {
 			s.logger.Debugf("Error retrieving user: %s", err)
 			return false

@@ -55,7 +55,7 @@ type IConfig =
     abstract member Template : string with get, set
 
 
-type ApiAuthFilterConfig() =
+type ApiAuthAllowConfig() =
     member val Get = "" with get, set
     member val Put = "" with get, set
     member val Post = "" with get, set
@@ -66,14 +66,7 @@ type ApiAuthConfig() =
     member val Table = "users" with get, set
     member val Username = "username" with get, set
     member val Password = "password" with get, set
-    member val Filter = Dictionary<string, ApiAuthFilterConfig>() with get, set
-
-
-type ApiEndpointConfig() =
-    member val Get = ApiEndpointMethodConfig() with get, set
-    member val Put = ApiEndpointMethodConfig() with get, set
-    member val Post = ApiEndpointMethodConfig() with get, set
-    member val Delete = ApiEndpointMethodConfig() with get, set
+    member val Allow = Dictionary<string, ApiAuthAllowConfig>() with get, set
 
 
 type ApiAuditConfig() =

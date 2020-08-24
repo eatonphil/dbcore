@@ -8,25 +8,70 @@ api:
   routerPrefix: v1/
   auth:
     enabled: true
-    filter:
+    allow:
       notes:
         # Must be public or tied to the current user's organization.
-        get: (notes [is_public] + notes [organization = (users [id = $user_id] {id})]) [id = $object_id]
+        get: |
+          is_public OR
+          organization IN (
+            SELECT id
+            FROM organizations o
+            JOIN users u ON u.organization = o.id
+            WHERE u.id = $req_user_id
+          )
         # Must be created by the user or tied to the current user's organization and an admin.
-        put: &ownedOrOrgAdmin (notes [created_by = $user_id] + notes [organization = (users [id = $user_id & is_admin] {id})]) [id = $object_id]
+        put: &ownedOrOrgAdmin |
+          created_by = $req_user_id OR
+          organization IN (
+            SELECT id
+            FROM organizations o
+            JOIN users u ON u.organization = o.id
+            WHERE u.id = $req_user_id AND u.is_admin
+          )
         # Same as edit (put)
         delete: *ownedOrOrgAdmin
         # Must be in the same org
-        post: notes [organization = (users [id = $user_id] {id})]
+        post: |
+          organization IN (
+            SELECT id
+            FROM organizations o
+            JOIN users u ON u.organization = o.id
+            WHERE u.id = $req_user_id
+          )
       users:
         # Must be in the same org
-        get: users [organization = (users [id = $user_id] {id})]
-        put: users [organization = (users [id = $user_id] {id})]
-        delete: &inOrgandIsadmin users [organization = (users [id = $user_id] {id}) & is_admin]
+        get: &inOrg |
+          organization IN (
+            SELECT id
+            FROM organizations o
+            JOIN users u ON u.organization = o.id
+            WHERE u.id = $req_user_id
+          )
+        put: *inOrg
+        delete: &inOrgandIsadmin |
+          created_by = $req_user_id OR
+          organization IN (
+            SELECT id
+            FROM organizations o
+            JOIN users u ON organization = o.id
+            WHERE u.id = $req_user_id AND u.is_admin
+          )
         post: *inOrgandIsadmin
       organizations:
-        get: *inOrg
-        put: *inOrgAndIsAdmin
+        get: |
+          id IN (
+            SELECT o.id
+            FROM organizations o
+            JOIN users u ON u.organization = o.id
+            WHERE u.id = $req_user_id
+          )
+        put: &inOrgAndIsAdmin |
+          id IN (
+            SELECT o.id
+            FROM organizations o
+            JOIN users u ON u.organization = o.id
+            WHERE u.id = $req_user_id AND u.is_admin
+          )
         delete: *inOrgandIsadmin
   audit:
     enabled: true

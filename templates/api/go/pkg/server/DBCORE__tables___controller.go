@@ -11,14 +11,33 @@ import (
 	"{{ api.extra.repo }}/{{ out_dir }}/pkg/dao"
 )
 
+func (s Server) {{ table.label }}RequestIsAllowed(r *http.Request, baseFilter string, objectId interface{}) bool {
+	context := map[string]interface{}{
+		"req_user_id": s.getSessionUsername(r),
+		"req_object_id": objectId,
+	}
+	return s.dao.IsAllowed("{{ table.name }}", baseFilter, context)
+}
+
 func (s Server) {{ table.label }}GetManyController(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	filter, pageInfo, err := getFilterAndPageInfo(r)
+	extraFilter, pageInfo, err := getFilterAndPageInfo(r)
 	if err != nil {
 		sendErrorResponse(w, err)
 		return
 	}
 
-	result, err := s.dao.{{ table.label|dbcore_capitalize }}GetMany(filter, *pageInfo)
+	baseFilter := `{{~ (api.auth.allow[table.name] | object.default {}).get | object.default "" ~}}`
+	baseContext := map[string]interface{}{
+		"req_user_id": s.getSessionUsername(r),
+	}
+	filter, err := dao.ParseFilterWithContext(baseFilter, baseContext)
+	if err != nil {
+		s.logger.Warnf("Error parsing base filter with context: %s", err)
+		sendAuthorizationErrorResponse(w)
+		return
+	}
+
+	result, err := s.dao.{{ table.label|dbcore_capitalize }}GetMany(extraFilter, *pageInfo, filter)
 	if err != nil {
 		sendErrorResponse(w, err)
 		return
@@ -34,6 +53,15 @@ func (s Server) {{ table.label }}GetManyController(w http.ResponseWriter, r *htt
 }
 
 func (s Server) {{ table.label }}CreateController(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+	{{~ baseFilter = (api.auth.allow[table.name] | object.default {}).post | object.default "" ~}}
+	{{~ if baseFilter ~}}
+	baseFilter := `{{ baseFilter }}`
+	if !s.{{ table.label }}RequestIsAllowed(r, baseFilter, nil) {
+		sendAuthorizationErrorResponse(w)
+		return
+	}
+	{{~ end ~}}
+
 	var body dao.{{ table.label|dbcore_capitalize }}
 	err := getBody(r, &body)
 	if err != nil {
@@ -102,6 +130,16 @@ func parse{{ table.label|dbcore_capitalize }}Key(key string) {{ toGoType table.p
 
 func (s Server) {{ table.label }}GetController(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	k := parse{{ table.label|dbcore_capitalize }}Key(ps.ByName("key"))
+
+	{{~ baseFilter = (api.auth.allow[table.name] | object.default {}).get | object.default "" ~}}
+	{{~ if baseFilter ~}}
+	baseFilter := `{{ baseFilter }}`
+	if !s.{{ table.label }}RequestIsAllowed(r, baseFilter, k) {
+		sendAuthorizationErrorResponse(w)
+		return
+	}
+	{{~ end ~}}
+
 	result, err := s.dao.{{ table.label|dbcore_capitalize }}Get(k)
 	if err != nil {
 		sendErrorResponse(w, err)
@@ -116,6 +154,17 @@ func (s Server) {{ table.label }}GetController(w http.ResponseWriter, r *http.Re
 }
 
 func (s Server) {{ table.label }}UpdateController(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	k := parse{{ table.label|dbcore_capitalize }}Key(ps.ByName("key"))
+
+	{{~ baseFilter = (api.auth.allow[table.name] | object.default {}).put | object.default "" ~}}
+	{{~ if baseFilter ~}}
+	baseFilter := `{{ baseFilter }}`
+	if !s.{{ table.label }}RequestIsAllowed(r, baseFilter, k) {
+		sendAuthorizationErrorResponse(w)
+		return
+	}
+	{{~ end ~}}
+
 	var body dao.{{ table.label|dbcore_capitalize }}
 	err := getBody(r, &body)
 	if err != nil {
@@ -124,7 +173,6 @@ func (s Server) {{ table.label }}UpdateController(w http.ResponseWriter, r *http
 		return
 	}
 
-	k := parse{{ table.label|dbcore_capitalize }}Key(ps.ByName("key"))
 	{{ if api.auth.enabled && table.label == api.auth.table }}
 	result, err := s.dao.{{ table.label|dbcore_capitalize }}Get(k)
 	if err != nil {
@@ -151,6 +199,16 @@ func (s Server) {{ table.label }}UpdateController(w http.ResponseWriter, r *http
 
 func (s Server) {{ table.label }}DeleteController(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	k := parse{{ table.label|dbcore_capitalize }}Key(ps.ByName("key"))
+
+	{{~ baseFilter = (api.auth.allow[table.name] | object.default {}).delete | object.default "" ~}}
+	{{~ if baseFilter ~}}
+	baseFilter := `{{ baseFilter }}`
+	if !s.{{ table.label }}RequestIsAllowed(r, baseFilter, k) {
+		sendAuthorizationErrorResponse(w)
+		return
+	}
+	{{~ end ~}}
+
 	err := s.dao.{{ table.label|dbcore_capitalize }}Delete(k)
 	if err != nil {
 		sendErrorResponse(w, err)

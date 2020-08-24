@@ -19,7 +19,7 @@ To build the todo app:
 $ git clone git@github.com:eatonphil/dbcore
 $ cd dbcore
 $ dotnet run ./examples/todo
-$ cd ./examples/todo/go
+$ cd ./examples/todo/api
 $ go build ./cmd/main.go
 $ ./main
 INFO[0000] Starting server at :9090                      pkg=server struct=Server

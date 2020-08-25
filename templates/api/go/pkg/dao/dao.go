@@ -120,26 +120,25 @@ type DAO struct {
 }
 
 func (d DAO) IsAllowed(table, filter string, ctx map[string]interface{}) bool {
-	sel := "SELECT COUNT(1)"
-	from := fmt.Sprintf(`FROM "%s"`, table)
+	table = `"`+table+`"`
 
 	// Allow override of select and from parts if specified
 	stmt, err := sqlparser.Parse(filter)
 	if err == nil {
-		sel = sqlparser.String(stmt.(*sqlparser.Select).SelectExprs)
-		from = sqlparser.String(stmt.(*sqlparser.Select).From)
-		filter = sqlparser.String(stmt.(*sqlparser.Select).Where)[len("WHERE "):]
+		sel := sqlparser.String(stmt.(*sqlparser.Select).SelectExprs)
+		from := sqlparser.String(stmt.(*sqlparser.Select).From)
+		where := sqlparser.String(stmt.(*sqlparser.Select).Where)[len("WHERE "):]
+		table = fmt.Sprintf("(SELECT %s FROM %s WHERE %s)", sel, from, where)
+		filter = ""
+	} else {
+		f, err := ParseFilterWithContext(filter, ctx)
+		if err != nil {
+			d.logger.Warnf("Failed parsing allow filter: %s", err)
+			return false
+		}
 	}
 
-	fmt.Println(sel, 1, from, 2, filter)
-
-	f, err := ParseFilterWithContext(filter, ctx)
-	if err != nil {
-		d.logger.Warnf("Failed parsing allow filter: %s", err)
-		return false
-	}
-
-	query := fmt.Sprintf(`%s %s %s`, sel, from, f.filter)
+	query := fmt.Sprintf(`SELECT COUNT(1) FROM %s %s`, from, f.filter)
 	d.logger.Debug(query)
 	row := d.db.QueryRowx(query, f.args...)
 

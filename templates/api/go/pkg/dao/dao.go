@@ -25,27 +25,25 @@ type Filter struct {
 	filter string
 }
 
-func ParseFilter(filter string) (*Filter, error) {
-	if filter == "" {
-		return &Filter{}, nil
-	}
-
-	stmt, err := sqlparser.Parse("SELECT 1 WHERE " + filter)
+// Converts a statement with 
+func parameterizeStatement(query string) (string, []interface{}, error) {
+	stmt, err := sqlparser.Parse(query)
 	if err != nil {
-		return nil, err
+		return "", nil, err
 	}
 
 	bindings := map[string]*querypb.BindVariable{}
-	// Extract out the literals into bind variables
+	// dbcore is a random choice for a binding variable prefix so
+	// we can be more certain when we find-replace on it
 	sqlparser.Normalize(stmt, bindings, "dbcore")
-	exp := sqlparser.String(stmt.(*sqlparser.Select).Where.Expr)
 
-	// Map :dbcore[0-9]* to $[0-9]*
+	// Map :dbcore[0-9]* to $[0-9]*, will screw up if this literal
+	// appeared in text in the query.
 	re := regexp.MustCompile(":dbcore([0-9]*)")
 
 	var invalidValue error
-	var f Filter
-	f.filter = "WHERE " + re.ReplaceAllStringFunc(exp, func (match string) string {
+	var args []interface{}
+	stmtWithBindings := re.ReplaceAllStringFunc(sqlparser.String(stmt), func (match string) string {
 		// This library has no sane way to produce a Go value
 		// from a parsed bind variable.
 		match = match[1:] // Drop the preceeding colon
@@ -58,7 +56,7 @@ func ParseFilter(filter string) (*Filter, error) {
 				return ""
 			}
 
-			f.args = append(f.args, i)
+			args = append(args, i)
 		} else if v.IsFloat() {
 			fl, err := strconv.ParseFloat(s, 64)
 			if err != nil {
@@ -66,90 +64,63 @@ func ParseFilter(filter string) (*Filter, error) {
 				return ""
 			}
 
-			f.args = append(f.args, fl)
+			args = append(args, fl)
 		} else if v.IsText() || v.IsQuoted() {
-			f.args = append(f.args, s)
+			args = append(args, s)
 		} else if v.IsNull() {
-			f.args = append(f.args, nil)
+			args = append(args, nil)
 		} else {
 			invalidValue = fmt.Errorf(`Unsupported value: "%s"`, s)
 		}
 
 		{{ if database.dialect == "postgres" }}
-		return fmt.Sprintf("$%d", len(f.args))
+		return fmt.Sprintf("$%d", len(args))
 		{{ else if database.dialect == "mysql" || database.dialect == "sqlite" }}
 		return "?"
 		{{ end }}
 	})
 
-	if invalidValue != nil {
-		return nil, invalidValue
-	}
-
-	return &f, nil
+	return stmtWithBindings, args, invalidValue
 }
 
-func ParseFilterWithContext(filter string, ctx map[string]interface{}) (*Filter, error) {
+func ParseFilter(filter string) (*Filter, error) {
+	if filter == "" {
+		return &Filter{}, nil
+	}
+
+	// TODO: validate filter uses acceptable subset of WHERE
+
+	// Add stub select to make filter into a statement
+	stmt, args, err := parameterizeStatement("SELECT x FROM x WHERE " + filter)
+	if err != nil {
+		return nil, err
+	}
+
+	return &Filter{
+		// Take only the filter part from the statement
+		filter: stmt[len("SELECT x FROM x "):],
+		args: args,
+	}, nil
+}
+
+// map $-prefixed variables from request context that can be turned
+// into parameterized queries
+func applyVariablesFromContext(filter string, ctx map[string]interface{}) string {
 	re := regexp.MustCompile("\\$[a-zA-Z_]+")
-	filter = re.ReplaceAllStringFunc(filter, func (match string) string {
+	return re.ReplaceAllStringFunc(filter, func (match string) string {
 		mapping, ok := ctx[match[1:]] // skip $ prefix
 		if mapping == nil || !ok {
 			return "NULL"
 		}
 
-		switch v := mapping.(type) {
-		case bool:
-			if v {
-				return "TRUE"
-			}
-			
-			return "FALSE"
-		case string:
-			return `"`+v+`"`
-		default:
-			return fmt.Sprintf("%v", v)
-		}
+		// Format as Go literal, probably works as a SQL literal too
+		return fmt.Sprintf("%#v", mapping)
 	})
-
-	return ParseFilter(filter)
 }
 
 type DAO struct {
 	db *sqlx.DB
 	logger logrus.FieldLogger
-}
-
-func (d DAO) IsAllowed(table, filter string, ctx map[string]interface{}) bool {
-	table = `"`+table+`"`
-
-	// Allow override of select and from parts if specified
-	stmt, err := sqlparser.Parse(filter)
-	if err == nil {
-		sel := sqlparser.String(stmt.(*sqlparser.Select).SelectExprs)
-		from := sqlparser.String(stmt.(*sqlparser.Select).From)
-		where := sqlparser.String(stmt.(*sqlparser.Select).Where)[len("WHERE "):]
-		table = fmt.Sprintf("(SELECT %s FROM %s WHERE %s)", sel, from, where)
-		filter = ""
-	} else {
-		f, err := ParseFilterWithContext(filter, ctx)
-		if err != nil {
-			d.logger.Warnf("Failed parsing allow filter: %s", err)
-			return false
-		}
-	}
-
-	query := fmt.Sprintf(`SELECT COUNT(1) FROM %s %s`, from, f.filter)
-	d.logger.Debug(query)
-	row := d.db.QueryRowx(query, f.args...)
-
-	var count uint
-	err = row.Scan(&count)
-	if err != nil {
-		d.logger.Warnf("Error fetching allow count: %s", err)
-		return false
-	}
-
-	return count > 0
 }
 
 func New(db *sqlx.DB, logger logrus.FieldLogger) *DAO {

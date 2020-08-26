@@ -40,7 +40,7 @@ func (s Server) SessionStartController(w http.ResponseWriter, r *http.Request, _
 	}
 
 	pageInfo := dao.Pagination{Offset: 0, Limit: 1, Order: `"{{ api.auth.username }}" DESC`}
-	result, err := s.dao.{{ api.auth.table|dbcore_capitalize }}GetMany(filter, pageInfo, nil)
+	result, err := s.dao.{{ api.auth.table|dbcore_capitalize }}GetMany(filter, pageInfo, "", nil)
 	if err != nil {
 		sendErrorResponse(w, err)
 		return
@@ -60,6 +60,7 @@ func (s Server) SessionStartController(w http.ResponseWriter, r *http.Request, _
 
 	unsignedToken := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"username": user.C_{{ api.auth.username }},
+		"user_id": user.Id(),
 		"exp": time.Now().Add(s.sessionDuration).Unix(),
 		"nbf": time.Now().Unix(),
 		"iat": time.Now().Unix(),

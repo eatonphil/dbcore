@@ -24,7 +24,6 @@ api:
           )
         # Must be created by the user or tied to the current user's organization and an admin.
         put: &ownedOrOrgAdmin |
-          created_by = $req_username OR
           created_by IN (
             SELECT id
             FROM users
@@ -34,7 +33,7 @@ api:
                 FROM users
                 WHERE username = $req_username
               ) AND
-              is_admin IS TRUE
+              (is_admin IS TRUE OR username = $req_username)
           )
         # Same as edit (put)
         delete: *ownedOrOrgAdmin
@@ -58,7 +57,7 @@ api:
             WHERE u.username = $req_username
           )
         put: *inOrg
-        delete: &inOrgandIsadmin |
+        delete: &inOrgAndIsAdmin |
           created_by = $req_username OR
           organization IN (
             SELECT o.id
@@ -66,7 +65,7 @@ api:
             JOIN users u ON organization = o.id
             WHERE u.username = $req_username AND u.is_admin IS TRUE
           )
-        post: *inOrgandIsadmin
+        post: *inOrgAndIsAdmin
       organizations:
         get: |
           id IN (
@@ -82,7 +81,7 @@ api:
             JOIN users u ON u.organization = o.id
             WHERE u.username = $req_username AND u.is_admin IS TRUE
           )
-        delete: *inOrgandIsadmin
+        delete: *inOrgAndIsAdmin
   audit:
     enabled: true
     createdAt: created_at

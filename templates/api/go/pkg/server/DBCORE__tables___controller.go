@@ -11,12 +11,20 @@ import (
 	"{{ api.extra.repo }}/{{ out_dir }}/pkg/dao"
 )
 
-func (s Server) {{ table.label }}RequestIsAllowed(r *http.Request, baseFilter string, objectId interface{}) bool {
-	context := map[string]interface{}{
+func (s Server) {{ table.label }}RequestFilterContext(r *http.Request, objectId {{ toGoType table.primary_key.value.type }}) {
+	
+}
+
+func (s Server) {{ table.label }}RequestIsAllowed(
+	r *http.Request,
+	filter string,
+	objectId {{ toGoType table.primary_key.value.type }},
+) bool {
+	ctx := map[string]interface{}{
 		"req_username": s.getSessionUsername(r),
 		"req_object_id": objectId,
 	}
-	return s.dao.IsAllowed("{{ table.name }}", baseFilter, context)
+	return s.dao.{{ table.label|dbcore_capitalize }}IsAllowed(filter, ctx)
 }
 
 func (s Server) {{ table.label }}GetManyController(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
@@ -30,14 +38,8 @@ func (s Server) {{ table.label }}GetManyController(w http.ResponseWriter, r *htt
 	baseContext := map[string]interface{}{
 		"req_username": s.getSessionUsername(r),
 	}
-	filter, err := dao.ParseFilterWithContext(baseFilter, baseContext)
-	if err != nil {
-		s.logger.Warnf("Error parsing base filter with context: %s", err)
-		sendAuthorizationErrorResponse(w)
-		return
-	}
 
-	result, err := s.dao.{{ table.label|dbcore_capitalize }}GetMany(extraFilter, *pageInfo, filter)
+	result, err := s.dao.{{ table.label|dbcore_capitalize }}GetMany(extraFilter, *pageInfo, baseFilter, baseContext)
 	if err != nil {
 		sendErrorResponse(w, err)
 		return

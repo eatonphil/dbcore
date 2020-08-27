@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"runtime/debug"
 	"fmt"
 	"net/http"
 	"os"
@@ -68,7 +69,7 @@ func (s Server) registerSigintHandler(srv *http.Server) {
 }
 
 func (s Server) handlePanic(w http.ResponseWriter, r *http.Request, err interface{}) {
-	s.logger.Warnf("Unexpected panic: %s", err)
+	s.logger.Warnf("Unexpected panic: %s\n%s", err, debug.Stack())
 	sendErrorResponse(w, fmt.Errorf("Internal server error"))
 }
 

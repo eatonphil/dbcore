@@ -25,12 +25,20 @@ type Filter struct {
 	filter string
 }
 
-// Converts a statement with 
-func parameterizeStatement(query string) (string, []interface{}, error) {
-	stmt, err := sqlparser.Parse(query)
-	if err != nil {
-		return "", nil, err
+func ParseFilter(filter string) (*Filter, error) {
+	if filter == "" {
+		return nil, nil
 	}
+
+	// TODO: validate filter uses acceptable subset of WHERE
+
+	// Add stub select to make filter into a statement
+	stmt, err := sqlparser.Parse("SELECT 1 " + filter)
+	if err != nil {
+		return nil, err
+	}
+
+	where := stmt.(*sqlparser.Select).Where
 
 	bindings := map[string]*querypb.BindVariable{}
 	// dbcore is a random choice for a binding variable prefix so
@@ -43,7 +51,7 @@ func parameterizeStatement(query string) (string, []interface{}, error) {
 
 	var invalidValue error
 	var args []interface{}
-	stmtWithBindings := re.ReplaceAllStringFunc(sqlparser.String(stmt), func (match string) string {
+	whereWithBindings := re.ReplaceAllStringFunc(sqlparser.String(where), func (match string) string {
 		// This library has no sane way to produce a Go value
 		// from a parsed bind variable.
 		match = match[1:] // Drop the preceeding colon
@@ -80,42 +88,34 @@ func parameterizeStatement(query string) (string, []interface{}, error) {
 		{{ end }}
 	})
 
-	return stmtWithBindings, args, invalidValue
-}
-
-func ParseFilter(filter string) (*Filter, error) {
-	if filter == "" {
-		return &Filter{}, nil
-	}
-
-	// TODO: validate filter uses acceptable subset of WHERE
-
-	// Add stub select to make filter into a statement
-	stmt, args, err := parameterizeStatement("SELECT x FROM x WHERE " + filter)
-	if err != nil {
-		return nil, err
-	}
-
 	return &Filter{
 		// Take only the filter part from the statement
-		filter: stmt[len("SELECT x FROM x "):],
+		filter: whereWithBindings,
 		args: args,
 	}, nil
 }
 
 // map $-prefixed variables from request context that can be turned
 // into parameterized queries
-func applyVariablesFromContext(filter string, ctx map[string]interface{}) string {
+func applyVariablesFromContext(filter string, ctx map[string]interface{}) (string, []interface{}) {
 	re := regexp.MustCompile("\\$[a-zA-Z_]+")
-	return re.ReplaceAllStringFunc(filter, func (match string) string {
+	var args []interface{}
+	applied := re.ReplaceAllStringFunc(filter, func (match string) string {
 		mapping, ok := ctx[match[1:]] // skip $ prefix
 		if mapping == nil || !ok {
-			return "NULL"
+			args = append(args, nil)
+		} else {
+			args = append(args, mapping)			
 		}
 
-		// Format as Go literal, probably works as a SQL literal too
-		return fmt.Sprintf("%#v", mapping)
+		{{ if database.dialect == "postgres" }}
+		return fmt.Sprintf("$%d", len(args))
+		{{ else if database.dialect == "mysql" || database.dialect == "sqlite" }}
+		return "?"
+		{{ end }}
 	})
+
+	return applied, args
 }
 
 type DAO struct {

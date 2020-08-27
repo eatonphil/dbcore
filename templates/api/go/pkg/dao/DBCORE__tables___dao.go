@@ -76,12 +76,7 @@ func (d DAO) {{ table.label|dbcore_capitalize }}GetMany(
 
 	{{~ if api.auth.enabled ~}}
 	if baseWhere != "" {
-		stmt, args, err := d.{{ table.label }}FilterToCompleteSQLStatement(baseWhere, baseCtx)
-		if err != nil {
-			// if baseWhere != "", this should only happen
-			// during development with a bad filter
-			panic(fmt.Errorf("Failed parsing base filter for get many request: %s", err))
-		}
+		stmt, args := d.{{ table.label }}FilterToCompleteSQLStatement(baseWhere, baseCtx)
 
 		// Combine base filter and where filter strings and args
 		// TODO: handle restrictions on tables without a primary key
@@ -310,46 +305,29 @@ WHERE
 func (d DAO) {{ table.label }}FilterToCompleteSQLStatement(
 	filter string,
 	ctx map[string]interface{},
-) (string, []interface{}, error) {
-	query := applyVariablesFromContext(filter, ctx)
+) (string, []interface{}) {
+	query, args := applyVariablesFromContext(filter, ctx)
 
-	selectFromPrefix := ""
 	// Allow override of select and from parts if specified
 	_, err := sqlparser.Parse(query)
 	if err != nil {
 		// TODO: handle restrictions on tables without a primary key
 
-		// TODO: Replace hack around using a mysql parser
-		// where the table name must be backtick-quoted but
-		// ANSI standard is double quotes
-		selectFromPrefix = "SELECT \"{{ table.primary_key.value.column }}\" FROM `{{ table.name }}` WHERE "
-		query = selectFromPrefix + query
+		query = `SELECT "{{ table.primary_key.value.column }}" FROM "{{ table.name }}" WHERE ` + query
 	}
 
-	parameterized, args, err := parameterizeStatement(query)
-	if err != nil {
-		return "", nil, fmt.Errorf("Failed parameterizing statement, `%s`: %s", query, err)
-	}
-
-	// -4 to get filter since the parser drops the quotes
-	filter = parameterized[len(selectFromPrefix)-5:]
-	// Replace backticks with quotes per ANSI standard
-	return strings.ReplaceAll(selectFromPrefix, "`", `"`) + filter, args, nil
+	return query, args
 }
 
 func (d DAO) {{ table.label|dbcore_capitalize }}IsAllowed(filter string, ctx map[string]interface{}) bool {
-	query, args, err := d.{{ table.label }}FilterToCompleteSQLStatement(filter, ctx)
-	if err != nil {
-		d.logger.Warnf("Failed parsing allow filter: %s", err)
-		return false
-	}
+	query, args := d.{{ table.label }}FilterToCompleteSQLStatement(filter, ctx)
 
 	query = fmt.Sprintf(`SELECT COUNT(1) FROM (%s)`, query)
 	d.logger.Debug(query)
 	row := d.db.QueryRowx(query, args...)
 
 	var count uint
-	err = row.Scan(&count)
+	err := row.Scan(&count)
 	if err != nil {
 		d.logger.Warnf("Error fetching allow count: %s", err)
 		return false

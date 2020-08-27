@@ -1,6 +1,6 @@
 database:
   dialect: sqlite3
-  dsn: file:../todo.db
+  dsn: file:../notes.db
 
 address: localhost:9090
 
@@ -8,4 +8,4 @@ allowed-origins:
   - http://localhost:9091
 
 session:
-  secret: TODO
+  secret: NOTES

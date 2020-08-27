@@ -1,8 +1,8 @@
-project: todo
+project: notes
 
 database:
   dialect: sqlite
-  database: todo.db
+  database: notes.db
 
 api:
   routerPrefix: v1/
@@ -88,6 +88,6 @@ api:
     updatedAt: updated_at
     deletedAt: deleted_at
   extra:
-    repo: github.com/eatonphil/dbcore-todo
+    repo: github.com/eatonphil/dbcore-notes
 
 browser: {}

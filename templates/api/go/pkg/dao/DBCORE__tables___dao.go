@@ -221,7 +221,7 @@ RETURNING {{ if table.primary_key.value }}{{ table.primary_key.value.column }}{{
 
 {{ if table.primary_key.value }}
 func (o {{ table.label|dbcore_capitalize }}) Id() {{ toGoType table.primary_key.value }} {
-	return body.C_{{ table.primary_key.value.column }}
+	return o.C_{{ table.primary_key.value.column }}
 }
 
 func (d DAO) {{ table.label|dbcore_capitalize }}Get(

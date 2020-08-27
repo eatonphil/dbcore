@@ -11,19 +11,47 @@ import (
 	"{{ api.extra.repo }}/{{ out_dir }}/pkg/dao"
 )
 
-func (s Server) {{ table.label }}RequestFilterContext(r *http.Request, objectId {{ toGoType table.primary_key.value.type }}) {
-	
+{{~ if table.primary_key.value ~}}
+{{~
+  func toGoType
+    case $0.type
+      when "int", "integer"
+        "int32"
+      when "bigint"
+        "int64"
+      when "text", "varchar", "char"
+        "string"
+      when "boolean"
+        "bool"
+      when "timestamp", "timestamp with time zone"
+        "time.Time"
+      else
+        "Unsupported type: " + $0.type
+    end
+  end
+~}}
+
+func (s Server) {{ table.label }}RequestFilterContext(
+	r *http.Request,
+	objectId *{{ toGoType table.primary_key.value }},
+) map[string]interface{} {
+	ctx := map[string]interface{}{
+		"req_username": s.getSessionUsername(r),
+	}
+
+	if objectId != nil {
+		ctx["req_object_id"] = *objectId
+	}
+
+	return ctx
 }
 
 func (s Server) {{ table.label }}RequestIsAllowed(
 	r *http.Request,
 	filter string,
-	objectId {{ toGoType table.primary_key.value.type }},
+	objectId *{{ toGoType table.primary_key.value }},
 ) bool {
-	ctx := map[string]interface{}{
-		"req_username": s.getSessionUsername(r),
-		"req_object_id": objectId,
-	}
+	ctx := s.{{ table.label }}RequestFilterContext(r, objectId)
 	return s.dao.{{ table.label|dbcore_capitalize }}IsAllowed(filter, ctx)
 }
 
@@ -35,9 +63,7 @@ func (s Server) {{ table.label }}GetManyController(w http.ResponseWriter, r *htt
 	}
 
 	baseFilter := `{{~ (api.auth.allow[table.name] | object.default {}).get | object.default "" ~}}`
-	baseContext := map[string]interface{}{
-		"req_username": s.getSessionUsername(r),
-	}
+	baseContext := s.{{ table.label }}RequestFilterContext(r, nil)
 
 	result, err := s.dao.{{ table.label|dbcore_capitalize }}GetMany(extraFilter, *pageInfo, baseFilter, baseContext)
 	if err != nil {
@@ -91,27 +117,7 @@ func (s Server) {{ table.label }}CreateController(w http.ResponseWriter, r *http
 	sendResponse(w, body)
 }
 
-{{~ if table.primary_key.value ~}}
-{{~
-  func toGoType
-    case $0
-      when "int", "integer"
-        "int32"
-      when "bigint"
-        "int64"
-      when "text", "varchar", "char"
-        "string"
-      when "boolean"
-        "bool"
-      when "timestamp", "timestamp with time zone"
-        "time.Time"
-      else
-        "Unsupported type: " + $0
-    end
-  end
-~}}
-
-func parse{{ table.label|dbcore_capitalize }}Key(key string) {{ toGoType table.primary_key.value.type }} {
+func parse{{ table.label|dbcore_capitalize }}Key(key string) {{ toGoType table.primary_key.value }} {
 {{~
   case table.primary_key.value.type
     when "text", "varchar", "char"
@@ -136,7 +142,7 @@ func (s Server) {{ table.label }}GetController(w http.ResponseWriter, r *http.Re
 	{{~ baseFilter = (api.auth.allow[table.name] | object.default {}).get | object.default "" ~}}
 	{{~ if baseFilter ~}}
 	baseFilter := `{{ baseFilter }}`
-	if !s.{{ table.label }}RequestIsAllowed(r, baseFilter, k) {
+	if !s.{{ table.label }}RequestIsAllowed(r, baseFilter, &k) {
 		sendAuthorizationErrorResponse(w)
 		return
 	}
@@ -161,7 +167,7 @@ func (s Server) {{ table.label }}UpdateController(w http.ResponseWriter, r *http
 	{{~ baseFilter = (api.auth.allow[table.name] | object.default {}).put | object.default "" ~}}
 	{{~ if baseFilter ~}}
 	baseFilter := `{{ baseFilter }}`
-	if !s.{{ table.label }}RequestIsAllowed(r, baseFilter, k) {
+	if !s.{{ table.label }}RequestIsAllowed(r, baseFilter, &k) {
 		sendAuthorizationErrorResponse(w)
 		return
 	}
@@ -205,7 +211,7 @@ func (s Server) {{ table.label }}DeleteController(w http.ResponseWriter, r *http
 	{{~ baseFilter = (api.auth.allow[table.name] | object.default {}).delete | object.default "" ~}}
 	{{~ if baseFilter ~}}
 	baseFilter := `{{ baseFilter }}`
-	if !s.{{ table.label }}RequestIsAllowed(r, baseFilter, k) {
+	if !s.{{ table.label }}RequestIsAllowed(r, baseFilter, &k) {
 		sendAuthorizationErrorResponse(w)
 		return
 	}

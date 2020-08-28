@@ -10,6 +10,24 @@ import (
 	"{{ api.extra.repo }}/{{ out_dir }}/pkg/dao"
 )
 
+func sendAuthorizationErrorResponse(w http.ResponseWriter) {
+	w.WriteHeader(http.StatusForbidden)
+	json.NewEncoder(w).Encode(struct{
+		Error string `json:"error"`
+	}{
+		"Restricted interaction",
+	})
+}
+
+func sendNotFoundErrorResponse(w http.ResponseWriter) {
+	w.WriteHeader(http.StatusNotFound)
+	json.NewEncoder(w).Encode(struct{
+		Error string `json:"error"`
+	}{
+		"Not found",
+	})}
+
+
 func sendValidationErrorResponse(w http.ResponseWriter, msg string) {
 	w.WriteHeader(http.StatusBadRequest)
 	json.NewEncoder(w).Encode(struct{

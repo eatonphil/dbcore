@@ -42,7 +42,7 @@ func toGoType
         "time.Time"
       end
     else
-      "Unsupported PostgreSQL type: " + $0.type
+      "Unsupported type: " + $0.type
   end
 end
 ~}}
@@ -58,7 +58,12 @@ type {{ table.label|dbcore_capitalize }}PaginatedResponse struct {
 	Data []{{ table.label|dbcore_capitalize }} `json:"data"`
 }
 
-func (d DAO) {{ table.label|dbcore_capitalize }}GetMany(where *Filter, p Pagination) (*{{ table.label|dbcore_capitalize }}PaginatedResponse, error) {
+func (d DAO) {{ table.label|dbcore_capitalize }}GetMany(
+	where *Filter,
+	p Pagination,
+	baseWhere string,
+	baseCtx map[string]interface{},
+) (*{{ table.label|dbcore_capitalize }}PaginatedResponse, error) {
 	if where == nil {
 		where = &Filter{}
 {{ if api.audit.enabled && api.audit.deleted_at }}
@@ -68,6 +73,17 @@ func (d DAO) {{ table.label|dbcore_capitalize }}GetMany(where *Filter, p Paginat
 	where.filter = where.filter + ` AND
   "{{ api.audit.deleted_at }}" IS NULL`
 	}{{~ end ~}}
+
+	{{~ if api.auth.enabled ~}}
+	if baseWhere != "" {
+		stmt, args := d.{{ table.label }}FilterToCompleteSQLStatement(baseWhere, baseCtx)
+
+		// Combine base filter and where filter strings and args
+		// TODO: handle restrictions on tables without a primary key
+		where.filter = where.filter + ` AND "{{ table.primary_key.value.column }}" IN (` + stmt + ")"
+		where.args = append(where.args, args...)
+	}
+	{{~ end ~}}
 
 	query := fmt.Sprintf(`
 SELECT
@@ -199,14 +215,25 @@ RETURNING {{ if table.primary_key.value }}{{ table.primary_key.value.column }}{{
 }
 
 {{ if table.primary_key.value }}
-func (d DAO) {{ table.label|dbcore_capitalize }}Get(key {{ toGoType table.primary_key.value }}) (*{{ table.label|dbcore_capitalize }}, error) {
-	where, _ := ParseFilter(fmt.Sprintf("{{ table.primary_key.value.column }} = %#v", key))
+func (o {{ table.label|dbcore_capitalize }}) Id() {{ toGoType table.primary_key.value }} {
+	return o.C_{{ table.primary_key.value.column }}
+}
+
+func (d DAO) {{ table.label|dbcore_capitalize }}Get(
+	key {{ toGoType table.primary_key.value }},
+) (*{{ table.label|dbcore_capitalize }}, error) {
+	where, err := ParseFilter(fmt.Sprintf("{{ table.primary_key.value.column }} = %#v", key))
+	if err != nil {
+		panic(err)
+	}
+
 	pagination := Pagination{
 		Limit: 1,
 		Offset: 0,
 		Order: fmt.Sprintf("{{ table.primary_key.value.column }} DESC"),
 	}
-	r, err := d.{{ table.label|dbcore_capitalize }}GetMany(where, pagination)
+
+	r, err := d.{{ table.label|dbcore_capitalize }}GetMany(where, pagination, "", nil)
 	if err != nil {
 		return nil, err
 	}
@@ -278,4 +305,39 @@ WHERE
 	_, err = stmt.Exec(key)
 	return err
 }
+
+func (d DAO) {{ table.label }}FilterToCompleteSQLStatement(
+	filter string,
+	ctx map[string]interface{},
+) (string, []interface{}) {
+	query, args := applyVariablesFromContext(filter, ctx)
+
+	// Allow override of select and from parts if specified
+	_, err := sqlparser.Parse(query)
+	if err != nil {
+		// TODO: handle restrictions on tables without a primary key
+
+		query = `SELECT "{{ table.primary_key.value.column }}" FROM "{{ table.name }}" WHERE ` + query
+	}
+
+	return query, args
+}
+
+func (d DAO) {{ table.label|dbcore_capitalize }}IsAllowed(filter string, ctx map[string]interface{}) bool {
+	query, args := d.{{ table.label }}FilterToCompleteSQLStatement(filter, ctx)
+
+	query = fmt.Sprintf(`SELECT COUNT(1) FROM (%s)`, query)
+	d.logger.Debug(query)
+	row := d.db.QueryRowx(query, args...)
+
+	var count uint
+	err := row.Scan(&count)
+	if err != nil {
+		d.logger.Warnf("Error fetching allow count: %s", err)
+		return false
+	}
+
+	return count > 0
+}
+
 {{ end }}

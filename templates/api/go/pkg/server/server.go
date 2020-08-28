@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"runtime/debug"
 	"fmt"
 	"net/http"
 	"os"
@@ -22,12 +23,17 @@ import (
 	"{{ api.extra.repo }}/{{ out_dir }}/pkg/dao"
 )
 
+type serverAuth struct {
+	secret string
+	allow map[string]map[string]string
+}
+
 type Server struct {
 	dao *dao.DAO
 	router *httprouter.Router
 	logger logrus.FieldLogger
 	address string
-	secret string
+	auth serverAuth
 	sessionDuration time.Duration
 	allowedOrigins []string
 }
@@ -68,9 +74,31 @@ func (s Server) registerSigintHandler(srv *http.Server) {
 }
 
 func (s Server) handlePanic(w http.ResponseWriter, r *http.Request, err interface{}) {
-	s.logger.Warn(err)
+	s.logger.Warnf("Unexpected panic: %s\n%s", err, debug.Stack())
 	sendErrorResponse(w, fmt.Errorf("Internal server error"))
 }
+
+func (s Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	s.logger.Infof("%s %s", r.Method, r.URL.RequestURI())
+	w.Header().Set("Content-Type", "application/json")
+
+	for _, allowed := range s.allowedOrigins {
+		origin := strings.ToLower(r.Header.Get("origin"))
+		if strings.ToLower(allowed) == origin {
+			w.Header().Set("Access-Control-Allow-Origin", origin)
+			w.Header().Set("Access-Control-Allow-Credentials", "true")
+			w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
+			w.Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, Authorization, Origin")
+		}
+
+		if r.Method == http.MethodOptions {
+			return
+		}
+	}
+
+	s.router.ServeHTTP(w, r)
+}
+
 
 func (s Server) Start() {
 	s.router.PanicHandler = s.handlePanic
@@ -98,13 +126,18 @@ func (s Server) Start() {
 
 func New(conf *Config) (*Server, error) {
 	dialect := conf.GetString("database.dialect")
-	dsn := conf.GetString("database.dsn")
+	dsn := conf.GetString("api.runtime.dsn")
+
+	if dialect == "sqlite" {
+		dialect = "sqlite3"
+	}
+	
 	db, err := sqlx.Connect(dialect, dsn)
 	if err != nil {
 		return nil, err
 	}
 
-	secret := conf.GetString("session.secret")
+	secret := conf.GetString("api.runtime.session.secret")
 	{{ if api.auth.enabled }}
 	if secret == "" {
 		return nil, fmt.Errorf(`Configuration value "secret" must be specified`)
@@ -123,9 +156,21 @@ func New(conf *Config) (*Server, error) {
 			"struct": "Server",
 			"pkg": "server",
 		}),
-		address: conf.GetString("address", ":9090"),
-		secret: secret,
-		sessionDuration: conf.GetDuration("session.duration", time.Hour * 2),
-		allowedOrigins : conf.GetStringSlice("allowed-origins"),
+		address: conf.GetString("api.runtime.address", ":9090"),
+		sessionDuration: conf.GetDuration("api.runtime.session.duration", time.Hour * 2),
+		allowedOrigins : conf.GetStringSlice("api.runtime.allowed-origins"),
+		auth: serverAuth{
+			secret: secret,
+			allow: map[string]map[string]string{
+				{{~ for table in tables ~}}
+				"{{ table.label }}": map[string]string {
+					"get": conf.GetString("api.runtime.auth.allow.{{ table.label }}.get", ""),
+					"put": conf.GetString("api.runtime.auth.allow.{{ table.label }}.put", ""),
+					"post": conf.GetString("api.runtime.auth.allow.{{ table.label }}.post", ""),
+					"delete": conf.GetString("api.runtime.auth.allow.{{ table.label }}.delete", ""),
+				},
+				{{~ end ~}}
+			},
+		},
 	}, nil
 }

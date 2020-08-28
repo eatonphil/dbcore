@@ -1,0 +1,101 @@
+project: notes
+
+database:
+  dialect: sqlite
+  database: notes.db
+
+api:
+  routerPrefix: v1/
+  auth:
+    enabled: true
+  audit:
+    enabled: true
+    createdAt: created_at
+    updatedAt: updated_at
+    deletedAt: deleted_at
+  extra:
+    repo: github.com/eatonphil/dbcore-notes
+  runtime:
+    dsn: file:../notes.db
+    address: localhost:9090
+    allowed-origins:
+      - http://localhost:9091
+    session:
+      secret: NOTES
+    auth:
+      allow:
+        notes:
+          # Must be public or tied to the current user's organization.
+          get: |
+            is_public IS TRUE OR
+            created_by IN (
+              SELECT id
+              FROM users
+              WHERE organization IN (
+                SELECT organization
+                FROM users
+                WHERE username = $req_username
+              )
+            )
+          # Must be created by the user or tied to the current user's organization and an admin.
+          put: &ownedOrOrgAdmin |
+            created_by IN (
+              SELECT id
+              FROM users
+              WHERE
+                organization IN (
+                  SELECT organization
+                  FROM users
+                  WHERE username = $req_username
+                ) AND
+                (is_admin IS TRUE OR username = $req_username)
+            )
+          # Same as edit (put)
+          delete: *ownedOrOrgAdmin
+          # Must be in the same org
+          post: |
+            SELECT id
+            FROM users
+            WHERE
+              organization IN (
+                SELECT organization
+                FROM users
+                WHERE username = $req_username
+              )
+        users:
+          # Must be in the same org
+          get: &inOrg |
+            organization IN (
+              SELECT o.id
+              FROM organizations o
+              JOIN users u ON u.organization = o.id
+              WHERE u.username = $req_username
+            )
+          put: *inOrg
+          delete: &inOrgAndIsAdmin |
+            created_by = $req_username OR
+            organization IN (
+              SELECT o.id
+              FROM organizations o
+              JOIN users u ON organization = o.id
+              WHERE u.username = $req_username AND u.is_admin IS TRUE
+            )
+          post: *inOrgAndIsAdmin
+        organizations:
+          get: |
+            id IN (
+              SELECT o.id
+              FROM organizations o
+              JOIN users u ON u.organization = o.id
+              WHERE u.username = $req_username
+            )
+          put: &inOrgAndIsAdmin |
+            id IN (
+              SELECT o.id
+              FROM organizations o
+              JOIN users u ON u.organization = o.id
+              WHERE u.username = $req_username AND u.is_admin IS TRUE
+            )
+          delete: *inOrgAndIsAdmin
+
+browser: {}

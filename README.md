@@ -4,9 +4,29 @@ DBCore is a code generator build around database schemas and an API
 specification. Included with DBCore are templates for generating a Go
 REST API and React UI.
 
-The API specification supports basic CRUD operations with filtering,
-pagination, sorting, JWT-based username/password authentication, and
-high-level/per-endpoint-and-method SQL filters for authorization.
+## Features and API specification
+
+While the DBCore project can build any templates from your
+database. It also defines an API specification with useful
+functionality for rapidly standing up an API around your database.
+
+Because DBCore does code generation, it can build well-typed code. The
+built-in Go API templates are a great example of this.
+
+But since the API specification is language-agnostic, all these
+features are supported no matter what language you use to generate a
+DBCore API.
+
+Major features include:
+
+* Get one, get many, create, edit, delete endpoints
+* Filtering, sorting, pagination
+* JWT-based authentication, per-endpoint/method SQL filter-based authorization
+
+Upcoming features include:
+
+* Lua-based hooks and transformations
+* SSO integration
 
 [See the docs site for more detail.](https://www.dbcore.org)
 

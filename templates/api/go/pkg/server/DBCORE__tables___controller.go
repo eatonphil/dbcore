@@ -150,6 +150,11 @@ func (s Server) {{ table.label }}GetController(w http.ResponseWriter, r *http.Re
 
 	result, err := s.dao.{{ table.label|dbcore_capitalize }}Get(k)
 	if err != nil {
+		if err == dao.ErrNotFound {
+			sendNotFoundErrorResponse(w)
+			return
+		}
+
 		sendErrorResponse(w, err)
 		return
 	}

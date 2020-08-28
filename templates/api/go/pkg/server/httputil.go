@@ -19,6 +19,15 @@ func sendAuthorizationErrorResponse(w http.ResponseWriter) {
 	})
 }
 
+func sendNotFoundErrorResponse(w http.ResponseWriter) {
+	w.WriteHeader(http.StatusNotFound)
+	json.NewEncoder(w).Encode(struct{
+		Error string `json:"error"`
+	}{
+		"Not found",
+	})}
+
+
 func sendValidationErrorResponse(w http.ResponseWriter, msg string) {
 	w.WriteHeader(http.StatusBadRequest)
 	json.NewEncoder(w).Encode(struct{

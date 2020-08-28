@@ -33,7 +33,7 @@ func ParseFilter(filter string) (*Filter, error) {
 	// TODO: validate filter uses acceptable subset of WHERE
 
 	// Add stub select to make filter into a statement
-	stmt, err := sqlparser.Parse("SELECT 1 " + filter)
+	stmt, err := sqlparser.Parse("SELECT 1 WHERE " + filter)
 	if err != nil {
 		return nil, err
 	}

@@ -14,4 +14,4 @@ VALUES (TRUE, 2, 'notes-admin', '$2y$12$rH9QTzZJmPGIPIfofMfRsOh8vD5u612VYOduOvq9
 
 -- password: editor
 INSERT INTO users (is_admin, organization, username, password, name, created_at, updated_at)
-VALUES (FALSE, 3, 'editor', '$2y$12$F5RlC/VhW1LNcCZi5ZZ1P.JnBvBShzSiMt3rKqZjhvJvylT6bJu2i', 'Editor', DATETIME('now'), DATETIME('now'));
+VALUES (FALSE, 2, 'editor', '$2y$12$F5RlC/VhW1LNcCZi5ZZ1P.JnBvBShzSiMt3rKqZjhvJvylT6bJu2i', 'Editor', DATETIME('now'), DATETIME('now'));

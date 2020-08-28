@@ -222,7 +222,11 @@ func (o {{ table.label|dbcore_capitalize }}) Id() {{ toGoType table.primary_key.
 func (d DAO) {{ table.label|dbcore_capitalize }}Get(
 	key {{ toGoType table.primary_key.value }},
 ) (*{{ table.label|dbcore_capitalize }}, error) {
-	where, _ := ParseFilter(fmt.Sprintf("{{ table.primary_key.value.column }} = %#v", key))
+	where, err := ParseFilter(fmt.Sprintf("{{ table.primary_key.value.column }} = %#v", key))
+	if err != nil {
+		panic(err)
+	}
+
 	pagination := Pagination{
 		Limit: 1,
 		Offset: 0,

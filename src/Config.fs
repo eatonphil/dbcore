@@ -84,6 +84,7 @@ type ApiConfig() =
     member val Auth = ApiAuthConfig() with get, set
     member val RouterPrefix = "" with get, set
     member val Extra = Dictionary<string, obj>() with get, set
+    member val Runtime = Dictionary<string, obj>() with get, set
 
     member val Audit = ApiAuditConfig() with get, set
 

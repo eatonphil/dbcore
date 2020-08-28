@@ -62,7 +62,7 @@ func (s Server) {{ table.label }}GetManyController(w http.ResponseWriter, r *htt
 		return
 	}
 
-	baseFilter := `{{~ (api.auth.allow[table.name] | object.default {}).get | object.default "" ~}}`
+	baseFilter := s.auth.allow["{{ table.label }}"]["get"]
 	baseContext := s.{{ table.label }}RequestFilterContext(r, nil)
 
 	result, err := s.dao.{{ table.label|dbcore_capitalize }}GetMany(extraFilter, *pageInfo, baseFilter, baseContext)
@@ -81,14 +81,13 @@ func (s Server) {{ table.label }}GetManyController(w http.ResponseWriter, r *htt
 }
 
 func (s Server) {{ table.label }}CreateController(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	{{~ baseFilter = (api.auth.allow[table.name] | object.default {}).post | object.default "" ~}}
-	{{~ if baseFilter ~}}
-	baseFilter := `{{ baseFilter }}`
-	if !s.{{ table.label }}RequestIsAllowed(r, baseFilter, nil) {
-		sendAuthorizationErrorResponse(w)
-		return
+	baseFilter := s.auth.allow["{{ table.label }}"]["post"]
+	if baseFilter != "" {
+		if !s.{{ table.label }}RequestIsAllowed(r, baseFilter, nil) {
+			sendAuthorizationErrorResponse(w)
+			return
+		}
 	}
-	{{~ end ~}}
 
 	var body dao.{{ table.label|dbcore_capitalize }}
 	err := getBody(r, &body)
@@ -139,14 +138,13 @@ func parse{{ table.label|dbcore_capitalize }}Key(key string) {{ toGoType table.p
 func (s Server) {{ table.label }}GetController(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	k := parse{{ table.label|dbcore_capitalize }}Key(ps.ByName("key"))
 
-	{{~ baseFilter = (api.auth.allow[table.name] | object.default {}).get | object.default "" ~}}
-	{{~ if baseFilter ~}}
-	baseFilter := `{{ baseFilter }}`
-	if !s.{{ table.label }}RequestIsAllowed(r, baseFilter, &k) {
-		sendAuthorizationErrorResponse(w)
-		return
+	baseFilter := s.auth.allow["{{ table.label }}"]["get"]
+	if baseFilter != "" {
+		if !s.{{ table.label }}RequestIsAllowed(r, baseFilter, &k) {
+			sendAuthorizationErrorResponse(w)
+			return
+		}
 	}
-	{{~ end ~}}
 
 	result, err := s.dao.{{ table.label|dbcore_capitalize }}Get(k)
 	if err != nil {
@@ -169,14 +167,13 @@ func (s Server) {{ table.label }}GetController(w http.ResponseWriter, r *http.Re
 func (s Server) {{ table.label }}UpdateController(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	k := parse{{ table.label|dbcore_capitalize }}Key(ps.ByName("key"))
 
-	{{~ baseFilter = (api.auth.allow[table.name] | object.default {}).put | object.default "" ~}}
-	{{~ if baseFilter ~}}
-	baseFilter := `{{ baseFilter }}`
-	if !s.{{ table.label }}RequestIsAllowed(r, baseFilter, &k) {
-		sendAuthorizationErrorResponse(w)
-		return
+	baseFilter := s.auth.allow["{{ table.label }}"]["put"]
+	if baseFilter != "" {
+		if !s.{{ table.label }}RequestIsAllowed(r, baseFilter, &k) {
+			sendAuthorizationErrorResponse(w)
+			return
+		}
 	}
-	{{~ end ~}}
 
 	var body dao.{{ table.label|dbcore_capitalize }}
 	err := getBody(r, &body)
@@ -213,14 +210,13 @@ func (s Server) {{ table.label }}UpdateController(w http.ResponseWriter, r *http
 func (s Server) {{ table.label }}DeleteController(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	k := parse{{ table.label|dbcore_capitalize }}Key(ps.ByName("key"))
 
-	{{~ baseFilter = (api.auth.allow[table.name] | object.default {}).delete | object.default "" ~}}
-	{{~ if baseFilter ~}}
-	baseFilter := `{{ baseFilter }}`
-	if !s.{{ table.label }}RequestIsAllowed(r, baseFilter, &k) {
-		sendAuthorizationErrorResponse(w)
-		return
+	baseFilter := s.auth.allow["{{ table.label }}"]["delete"]
+	if baseFilter != "" {
+		if !s.{{ table.label }}RequestIsAllowed(r, baseFilter, &k) {
+			sendAuthorizationErrorResponse(w)
+			return
+		}
 	}
-	{{~ end ~}}
 
 	err := s.dao.{{ table.label|dbcore_capitalize }}Delete(k)
 	if err != nil {

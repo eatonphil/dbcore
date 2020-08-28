@@ -13,7 +13,8 @@ install:
 	rm /usr/local/bin/dbcore
 	ln -s $(CURDIR)/bin/release/netcoreapp3.0/linux-x64/publish/dbcore /usr/local/bin
 
-test-example-notes:
+example-notes:
 	dotnet run ./examples/notes
+	(cd examples/notes && (cat sql/sqlite/schema.sql | sqlite3 notes.db) && (cat sql/init.sql | sqlite3 notes.db)) || echo "Database already initialized."
 	(cd examples/notes/api && go build cmd/main.go)
 	(cd examples/notes/browser && yarn tsc)

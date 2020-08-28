@@ -26,24 +26,25 @@
       <div class="container">
         <header>
           <h1>DBCore</h1>
-	  <h2>Rapidly prototype applications powered by your database.</h2>
+          <h2>Rapidly prototype applications powered by your database.</h2>
         </header>
         <ul>
-	  <li>Use PostgreSQL, MySQL, or SQLite3</li>
+          <li>Use PostgreSQL, MySQL, or SQLite3</li>
           <li>To generate a Go <strong>REST API</strong> and TypeScript/React <strong>UI</strong>
-	    <ul class="checks">
-	      <li>List, add, edit, delete</li>
-	      <li>Filter, paginate, sort</li>
-	      <li>Authenticate with JWT tokens</li>
-	      <li>Automated create, update, delete timestamps</li>
-	    </ul>
-	  </li>
-	  <li>With an MIT license</li>
+            <ul class="checks">
+              <li>List, add, edit, delete</li>
+              <li>Filter, paginate, sort</li>
+              <li>Authenticate with JWT tokens</li>
+              <li>Per endpoint, method authorization through SQL filters</li>
+              <li>Automated create, update, delete timestamps</li>
+            </ul>
+          </li>
+          <li>With an MIT license</li>
         </ul>
-	<p><small>This software is in ALPHA development.</small></p>
-	<div class="star">
-	  <a class="github-button" href="https://github.com/eatonphil/dbcore" data-size="large" data-show-count="true" aria-label="Star eatonphil/dbcore on GitHub">Star</a>
-	</div>
+        <p><small>This software is in ALPHA development.</small></p>
+        <div class="star">
+          <a class="github-button" href="https://github.com/eatonphil/dbcore" data-size="large" data-show-count="true" aria-label="Star eatonphil/dbcore on GitHub">Star</a>
+        </div>
       </div>
     </section>
 
@@ -51,20 +52,20 @@
       <div class="container">
         <header>
           <h1>What makes DBCore special?</h1>
-	</header>
+        </header>
         <p>
-	  DBCore reads your database and generates high-quality,
-	  statically typed Go code (for the API) and TypeScript (for
-	  the UI) based on templates.
-	</p>
-	<p>
-	  Not happy with the built-in templates? Write your
-	  own to generate any kind of application you want.
-	</p>
-	<small>Screenshot of the examples/todo application.</small>
-	<a href="https://raw.githubusercontent.com/eatonphil/dbcore/master/docs/screenshot.png">
-	  <img src="screenshot.png" style="width: 100%" />
-	</a>
+          DBCore reads your database and generates high-quality,
+          statically typed Go code (for the API) and TypeScript (for
+          the UI) based on templates.
+        </p>
+        <p>
+          Not happy with the built-in templates? Write your
+          own to generate any kind of application you want.
+        </p>
+        <small>Screenshot of the examples/todo application.</small>
+        <a href="https://raw.githubusercontent.com/eatonphil/dbcore/master/docs/screenshot.png">
+          <img src="screenshot.png" style="width: 100%" />
+        </a>
       </div>
     </section>
 
@@ -72,10 +73,10 @@
       <div class="container">
         <header>
           <h1>Generating a Go API</h1>
-	</header>
+        </header>
         <p>
           In your project root folder create a <code>dbcore.yml</code>:
-	</p>
+        </p>
         <pre><code>project: $project-name
 database:
   # Or 'mysql'
@@ -115,60 +116,148 @@ api:
     password: $password
 
   extra:
-    repo: $your-repo</code></pre>
-	<p>
-	  The <code>dbcore.yml</code> file controls code
-	  generation. You'll also need an <code>api.yml</code> file
-	  for runtime behavior:
-	</p>
-	<pre></code>database:
-  # Or use 'mysql'
-  dialect: postgres
-  # Or use '$username:$password@tcp($host:$port)/$database?sql_mode=ANSI', sql_mode=ANSI is required
-  dsn: postgres://$username:$password@$host:$port/$database?sslmode=disable
+    repo: $your-repo
 
-address: :9090
+  # Configuration that is read only at runtime and can be modified
+  # with only a restart not a regeneration.
+  runtime:
+    # Or use '$username:$password@tcp($host:$port)/$database?sql_mode=ANSI', sql_mode=ANSI is required
+    dsn: postgres://$username:$password@$host:$port/$database?sslmode=disable
 
-session:
-  duration: 2hr
-  secret: $my-secret-signing-key</code></pre>
-	<p>
-	  Clone the repo and run <code>make && make install</code>
-	  within the repo root. You will need Docker, only.
-	</p>
-	<p>
-	  Then go to your project directory and run
-	  <code>dbcore .</code> to generate the project. Finally
-	  run <code>go run cmd/main.go</code> to start the server.
-	</p>
+    session:
+      duration: 2hr
+      secret: $my-secret-signing-key</code></pre>
+        <p>
+          Clone the repo and run <code>make && make install</code>
+          within the repo root. You will need Docker, only.
+        </p>
+        <p>
+          Then go to your project directory and run
+          <code>dbcore .</code> to generate the project. Finally
+          run <code>go run cmd/main.go</code> to start the server.
+        </p>
       </div>
     </section>
 
     <section id="api-specification">
       <div class="container">
-	<header>
+        <header>
           <h1>API Specification</h1>
-	</header>
-	<h2>Authentication</h2>
-	<p>
-	  When authentication is enabled, make a
-	  JSON <code>POST</code> request with <code>{"username":
-	  "$your-username", "password": "$your-password"}</code>
-	  to <code>/$version/session/start</code> to generate a
-	  token. It is valid for 2 hours by default.
-	</p>
-	<p>
-	  Passwords are stored as BCrypt hashes.
-	</p>
-	<p>
-	  You can store this token in the <code>au</code> cookie or
-	  you can submit it as bearer token by setting
-	  the <code>Authorization</code> header to <code>BEARER
-	  $your-token</code>.
-	</p>
-	<h3>Example</h3>
-	<pre><code>$ curl -X POST -d '{"username": "alex", "password": "alex"}' localhost:9090/v1/session/start
+        </header>
+        <h2>Authentication</h2>
+        <p>
+          When authentication is enabled, make a
+          JSON <code>POST</code> request with <code>{"username":
+          "$your-username", "password": "$your-password"}</code>
+          to <code>/$version/session/start</code> to generate a
+          token. It is valid for 2 hours by default.
+        </p>
+        <p>
+          Passwords are stored as BCrypt hashes.
+        </p>
+        <p>
+          You can store this token in the <code>au</code> cookie or
+          you can submit it as bearer token by setting
+          the <code>Authorization</code> header to <code>BEARER
+          $your-token</code>.
+        </p>
+        <h3>Example</h3>
+        <pre><code>$ curl -X POST -d '{"username": "alex", "password": "alex"}' localhost:9090/v1/session/start
 {"token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE1OTA3MjkyNjMsImlhdCI6MTU5MDcyMjA2MywibmJmIjoxNTkwNzIyMDYzLCJ1c2VybmFtZSI6InBoaWwifQ.4AAveeFRpXckn3cRFyCQew2V7jmcU4OOYH68wcv6afI"}</code></pre>
+
+        <h2>Authorization</h2>
+        <p>
+          Allow lists per endpoint and method are specified in ANSI
+          SQL. If you only include a <code>WHERE</code> clause
+          (omitting the <code>WHERE</code> token) it will default to
+          applying this search on the endpoint's table.
+        </p>
+        <p>
+          Allowances are specified in the
+          <code>api.runtime.auth.allow</code> section and are a dictionary
+          mapping table labels to a dictionary mapping methods to
+          filters.
+        </p>
+	<p>
+	  Request variables can be interpolated into the filter for
+	  session-based authorization.
+	</p>
+	<h3>Built-in request variables</h3>
+	<p>
+	  <table>
+	    <thead>
+	      <tr>
+		<th>Parameter</th>
+		<th>Definition</th>
+		<th>Example</th>
+	      </tr>
+	    </thead>
+	    <tbody>
+	      <tr>
+		<td><code>$req_username</code></td>
+		<td>Username of the current session</td>
+		<td><code>admin</code></td>
+	      </tr>
+	      <tr>
+		<td><code>$req_object_id</code></td>
+		<td>
+		  Id of the current object being acted on, depends on
+		  the type of the primary key. Null if not relevant.
+		</td>
+		<td><code>1</code></td>
+	      </tr>
+	    </tbody>
+	  <table>
+	</p>
+        <h3>Example</h3>
+        <pre><code>api:
+  runtime:
+    auth:
+      allow:
+        notes:
+	  # Must be public or tied to the current user's organization.
+          get: |
+            is_public IS TRUE OR
+            created_by IN (
+              SELECT id
+              FROM users
+              WHERE organization IN (
+                SELECT organization
+                FROM users
+                WHERE username = $req_username
+              )
+            )
+          # Must be created by the user or tied to the current user's organization and an admin.
+          put: &ownedOrOrgAdmin |
+            created_by IN (
+              SELECT id
+              FROM users
+              WHERE
+                organization IN (
+                  SELECT organization
+                  FROM users
+                  WHERE username = $req_username
+                ) AND
+                (is_admin IS TRUE OR username = $req_username)
+            )
+          # Same as edit (put)
+          delete: *ownedOrOrgAdmin
+          # Must be in the same org
+          post: |
+            SELECT id
+            FROM users
+            WHERE
+              organization IN (
+                SELECT organization
+                FROM users
+                WHERE username = $req_username
+              )</code></pre>
+        <p>
+          Filters are only applied if the key exists and is not the
+	  empty string. For an in-depth example. See the
+	  [organization-oriented example note-taking app in the
+	  repo](https://github.com/eatonphil/dbcore/tree/master/examples/notes).
+	</p>
 
 	<h2>Get many rows from a table</h2>
 	<p>

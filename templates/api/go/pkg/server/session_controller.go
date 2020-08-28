@@ -12,7 +12,58 @@ import (
 	"github.com/julienschmidt/httprouter"
 
 	"{{ api.extra.repo }}/{{ out_dir }}/pkg/dao"
-)
+)<
+
+func (s Server) getSessionUsername(r *http.Request) string {
+	cookie, err := r.Cookie("au")
+	if err != nil {
+		// Fall back to header check
+		cookie = &http.Cookie{}
+	}
+
+	token := cookie.Value
+	if token == "" {
+		authHeader := r.Header.Get("Authorization")
+		if len(authHeader) > len("bearer ") &&
+			strings.ToLower(authHeader[:len("bearer ")]) == "bearer " {
+			token = authHeader[len("bearer "):]
+		}
+	}
+
+	t, err := jwt.Parse(token, func(t *jwt.Token) (interface{}, error) {
+		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("Unexpected signing method: %v", t.Header["alg"])
+		}
+
+		return []byte(s.auth.secret), nil
+	})
+	if err != nil {
+		s.logger.Debugf("Error parsing JWT: %s", err)
+		return ""
+	}
+
+	claims, ok := t.Claims.(jwt.MapClaims)
+	if !(ok && t.Valid) {
+		return ""
+	}
+
+	if err := claims.Valid(); err != nil {
+		s.logger.Debugf("Invalid claims: %s", err)
+		return ""
+	}
+
+	usernameInterface, ok := claims["username"]
+	if !ok {
+		return ""
+	}
+
+	username, ok := usernameInterface.(string)
+	if !ok {
+		return ""
+	}
+
+	return username
+}
 
 func (s Server) SessionStartController(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	var userPass struct {
@@ -65,7 +116,7 @@ func (s Server) SessionStartController(w http.ResponseWriter, r *http.Request, _
 		"nbf": time.Now().Unix(),
 		"iat": time.Now().Unix(),
 	})
-	token, err := unsignedToken.SignedString([]byte(s.secret))
+	token, err := unsignedToken.SignedString([]byte(s.auth.secret))
 	if err != nil {
 		s.logger.Debugf("Error signing string: %s", err)
 		sendErrorResponse(w, fmt.Errorf("Internal server error"))

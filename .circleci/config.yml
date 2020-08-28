@@ -7,17 +7,17 @@ jobs:
       - checkout
       - run: dotnet publish -c release
       - run: apt-get update -y && apt-get install -y sqlite3
-      - run: sqlite3 ./examples/todo/todo.db < ./examples/todo/sql/sqlite/schema.sql
-      - run: ./bin/release/netcoreapp3.0/linux-x64/publish/dbcore ./examples/todo
+      - run: sqlite3 ./examples/notes/notes.db < ./examples/notes/sql/sqlite/schema.sql
+      - run: ./bin/release/netcoreapp3.0/linux-x64/publish/dbcore ./examples/notes
       - persist_to_workspace:
           root: ./examples
           paths:
-            - todo
+            - notes
 
   test_example_go_api:
     docker:
       - image: golang:1
-    working_directory: /tmp/todo/api
+    working_directory: /tmp/notes/api
     steps:
       - checkout
       - attach_workspace:
@@ -30,7 +30,7 @@ jobs:
   test_example_react_browser:
     docker:
       - image: node:lts
-    working_directory: /tmp/todo/browser
+    working_directory: /tmp/notes/browser
     steps:
       - checkout
       - attach_workspace:

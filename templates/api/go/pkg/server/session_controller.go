@@ -12,7 +12,7 @@ import (
 	"github.com/julienschmidt/httprouter"
 
 	"{{ api.extra.repo }}/{{ out_dir }}/pkg/dao"
-)<
+)
 
 func (s Server) getSessionUsername(r *http.Request) string {
 	cookie, err := r.Cookie("au")
